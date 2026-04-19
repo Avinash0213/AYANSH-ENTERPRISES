@@ -75,7 +75,7 @@ using (var scope = app.Services.CreateScope())
     {
         var db = services.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
-        await DbSeeder.SeedAsync(db);
+        // await DbSeeder.SeedAsync(db); // Uncomment to seed required data once
     }
     catch (Exception ex)
     {
