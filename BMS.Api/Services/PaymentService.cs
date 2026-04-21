@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 public class PaymentService
 {
     private readonly AppDbContext _db;
-
+ 
     public PaymentService(AppDbContext db)
     {
         _db = db;
@@ -43,9 +43,41 @@ public class PaymentService
         return MapToResponse(payment);
     }
 
-    public async Task<List<PaymentResponse>> GetAllAsync(DateOnly? from = null, DateOnly? to = null)
+    public async Task<PagedResponse<PaymentResponse>> GetAllPagedAsync(DateOnly? from = null, DateOnly? to = null, int page = 1, int pageSize = 10)
     {
         var query = _db.Payments
+            .AsNoTracking()
+            .Include(p => p.Customer)
+            .Include(p => p.CreatedBy)
+            .AsQueryable();
+
+        if (from.HasValue)
+            query = query.Where(p => p.PaymentDate >= from.Value);
+        if (to.HasValue)
+            query = query.Where(p => p.PaymentDate <= to.Value);
+
+        var totalCount = await query.CountAsync();
+        
+        var payments = await query
+            .OrderByDescending(p => p.CreatedAt)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync();
+
+        return new PagedResponse<PaymentResponse>
+        {
+            Items = payments.Select(MapToResponse).ToList(),
+            TotalCount = totalCount,
+            PageNumber = page,
+            PageSize = pageSize
+        };
+    }
+
+    public async Task<List<PaymentResponse>> GetAllAsync(DateOnly? from = null, DateOnly? to = null)
+    {
+        // Keep for internal use if needed, but optimized
+        var query = _db.Payments
+            .AsNoTracking()
             .Include(p => p.Customer)
             .Include(p => p.CreatedBy)
             .AsQueryable();
@@ -84,6 +116,7 @@ public class PaymentService
     public async Task<List<PaymentResponse>> GetByCustomerAsync(int customerId)
     {
         var payments = await _db.Payments
+            .AsNoTracking()
             .Where(p => p.CustomerId == customerId)
             .Include(p => p.Customer)
             .Include(p => p.CreatedBy)
@@ -96,6 +129,7 @@ public class PaymentService
     public async Task<List<PaymentResponse>> GetByVisitCodeAsync(string visitCode)
     {
         var payments = await _db.Payments
+            .AsNoTracking()
             .Where(p => p.SataraVisitCode == visitCode)
             .Include(p => p.CreatedBy)
             .OrderByDescending(p => p.CreatedAt)
@@ -113,15 +147,28 @@ public class PaymentService
         if (to.HasValue)
             query = query.Where(p => p.PaymentDate <= to.Value);
 
-        var payments = await query.ToListAsync();
+        var stats = await query
+            .AsNoTracking()
+            .GroupBy(p => 1)
+            .Select(g => new
+            {
+                TotalReceived = g.Sum(p => p.ReceivedAmount),
+                TotalGov = g.Sum(p => p.GovernmentCharges),
+                TotalComm = g.Sum(p => p.EmployeeCommission),
+                TotalProfit = g.Sum(p => p.Profit),
+                Count = g.Count()
+            })
+            .FirstOrDefaultAsync();
+
+        if (stats == null) return new PaymentSummary();
 
         return new PaymentSummary
         {
-            TotalReceived = payments.Sum(p => p.ReceivedAmount),
-            TotalGovernmentCharges = payments.Sum(p => p.GovernmentCharges),
-            TotalCommission = payments.Sum(p => p.EmployeeCommission),
-            TotalProfit = payments.Sum(p => p.Profit),
-            TotalPayments = payments.Count
+            TotalReceived = stats.TotalReceived,
+            TotalGovernmentCharges = stats.TotalGov,
+            TotalCommission = stats.TotalComm,
+            TotalProfit = stats.TotalProfit,
+            TotalPayments = stats.Count
         };
     }
 

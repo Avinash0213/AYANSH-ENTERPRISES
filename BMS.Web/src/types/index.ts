@@ -21,6 +21,10 @@ export interface Customer {
   endDate: string;
   createdDate: string;
   createdByName?: string;
+  rent: number;
+  deposit: number;
+  quotedAmount: number;
+  remainingAmount: number;
 }
 
 export interface CreateCustomerRequest {

@@ -11,7 +11,7 @@ export default function Reports() {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [exportingLedger, setExportingLedger] = useState(false);
-  const [filters, setFilters] = useState({ from: '', to: '', type: '' });
+  const [filters, setFilters] = useState({ from: '', to: '', type: '', source: 'all' });
 
   const fetchReport = async () => {
     setLoading(true);
@@ -74,6 +74,7 @@ export default function Reports() {
       const params = new URLSearchParams();
       if (filters.from) params.append('from', filters.from);
       if (filters.to) params.append('to', filters.to);
+      if (filters.source && filters.source !== 'all') params.append('source', filters.source);
 
       const response = await api.get(`/reports/export/ledger?${params.toString()}`, {
         responseType: 'blob'
@@ -172,14 +173,14 @@ export default function Reports() {
               </button>
             ))}
             <button
-              onClick={() => setFilters({ from: '', to: '', type: '' })}
+              onClick={() => setFilters({ from: '', to: '', type: '', source: 'all' })}
               className="px-3 py-1.5 bg-background border border-border rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20"
             >
               Reset
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">From date</label>
             <DateInput value={filters.from} onChange={v => setFilters(f => ({ ...f, from: v }))} />
@@ -189,7 +190,19 @@ export default function Reports() {
             <DateInput value={filters.to} onChange={v => setFilters(f => ({ ...f, to: v }))} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">Type</label>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Payment Source</label>
+            <CustomSelect
+              value={filters.source || 'all'}
+              onChange={(v) => setFilters(f => ({ ...f, source: String(v) }))}
+              options={[
+                { value: 'all', label: 'Combined' },
+                { value: 'customer', label: 'Customer' },
+                { value: 'visit', label: 'Client Visit' },
+              ]}
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Customer Type</label>
             <CustomSelect
               value={filters.type}
               onChange={(v) => setFilters(f => ({ ...f, type: String(v) }))}

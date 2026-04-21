@@ -13,6 +13,7 @@ import { cn, fmtDate } from '../lib/utils';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
 import DateInput from '../components/DateInput';
+import PasswordField from '../components/PasswordField';
 import type { SataraVisit, UpdateSataraVisitRequest, Payment } from '../types';
 
 const emptyForm = {
@@ -70,15 +71,16 @@ export default function SataraVisits() {
           throw e;
         }
       }
-      
+
       // Fallback: Fetch all payments and filter locally
-      const { data } = await api.get(`/payments?from=2024-01-01`); // Ensure we get a wide range
-      const filtered = (data || []).filter((p: any) => 
+      const { data } = await api.get(`/payments?from=2024-01-01&pageSize=1000`); // Ensure we get a wide range
+      const list = data.items || [];
+      const filtered = list.filter((p: any) =>
         (p.sataraVisitCode || '').toLowerCase() === visitCode.toLowerCase()
       );
       setVisitPayments(filtered);
-    } catch (err) { 
-      console.error('Error fetching payments:', err); 
+    } catch (err) {
+      console.error('Error fetching payments:', err);
     }
     finally { setLoadingPayments(false); }
   };
@@ -418,12 +420,13 @@ export default function SataraVisits() {
                 </div>
               </div>
               <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Agreement Password</label>
-                <div className="relative">
-                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-                  <input type="text" value={form.password} onChange={e => updateField('password', e.target.value)}
-                    className="input-field pl-9" placeholder="Security Pass" />
-                </div>
+                <PasswordField
+                  label="Agreement Password"
+                  value={form.password}
+                  onChange={e => updateField('password', e.target.value)}
+                  placeholder="Security Pass"
+                  icon={<Key className="w-3.5 h-3.5" />}
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Remarks</label>
@@ -470,9 +473,9 @@ export default function SataraVisits() {
                 <DateInput value={form.paymentDate} onChange={v => updateField('paymentDate', v)} />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Collector</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Executive</label>
                 <input type="text" value={form.collectorName || ''} onChange={e => updateField('collectorName', e.target.value)}
-                  className="input-field py-2" placeholder="Who collected?" />
+                  className="input-field py-2" placeholder="Who executed?" />
               </div>
               <div className="md:col-span-4">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Payment Remarks</label>
@@ -488,7 +491,7 @@ export default function SataraVisits() {
               <div className="divide-y divide-border border rounded-xl overflow-hidden bg-card">
                 {loadingPayments ? (
                   <div className="p-4 text-center text-xs text-muted-foreground flex items-center justify-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin"/> Fetching records...
+                    <Loader2 className="w-4 h-4 animate-spin" /> Fetching records...
                   </div>
                 ) : visitPayments.length > 0 ? (
                   visitPayments.map(p => (
@@ -497,12 +500,12 @@ export default function SataraVisits() {
                         <p className="font-bold">₹ {p.receivedAmount.toLocaleString()}</p>
                         <p className="text-xs text-muted-foreground">{fmtDate(p.paymentDate)}</p>
                       </div>
-                      <button onClick={() => setEditPayment(p)} className="p-2 hover:text-red-600"><Pencil className="w-4 h-4"/></button>
+                      <button onClick={() => setEditPayment(p)} className="p-2 hover:text-red-600"><Pencil className="w-4 h-4" /></button>
                     </div>
                   ))
                 ) : (
                   <div className="p-4 text-center text-xs text-muted-foreground">
-                    No transaction history found for {visits.find(v=>v.id===editingId)?.visitCode}.
+                    No transaction history found for {visits.find(v => v.id === editingId)?.visitCode}.
                   </div>
                 )}
               </div>
@@ -621,16 +624,35 @@ export default function SataraVisits() {
                           <p className="text-base font-semibold text-emerald-700">₹ {visitPayments.reduce((acc, p) => acc + p.profit, 0).toLocaleString()}</p>
                         </div>
                       </div>
-                      <div className="max-h-[160px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                      <div className="max-h-[180px] overflow-y-auto space-y-2.5 pr-1.5 custom-scrollbar">
                         {visitPayments.map(p => (
-                          <div key={p.id} className="bg-white p-3 rounded-lg text-sm border border-emerald-100">
-                            <div className="flex justify-between items-start mb-1">
-                              <span className="font-medium text-emerald-900">₹ {p.receivedAmount.toLocaleString()}</span>
-                              <span className="text-xs text-emerald-600">{fmtDate(p.paymentDate)}</span>
+                          <div key={p.id} className="bg-white p-3.5 rounded-xl border border-emerald-100/50 hover:bg-white hover:border-emerald-200 transition-all shadow-sm">
+                            <div className="flex justify-between items-start gap-3 mb-2">
+                              <span className="text-base font-bold text-emerald-900 tracking-tight">₹ {p.receivedAmount.toLocaleString()}</span>
+                              <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-100/50 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                {fmtDate(p.paymentDate)}
+                              </span>
                             </div>
-                            <div className="flex justify-between items-center text-xs text-emerald-700">
-                              <span>Profit: ₹ {p.profit.toLocaleString()}</span>
-                              <span className="italic line-clamp-1 max-w-[120px] opacity-80" title={p.comment}>"{p.comment || 'General Rec.'}"</span>
+                            <div className="flex flex-col gap-1.5 text-xs text-emerald-800">
+                              <div className="flex items-center justify-between">
+                                <span className="opacity-70 font-medium">Internal Profit:</span>
+                                <span className="font-bold text-emerald-600">₹ {p.profit.toLocaleString()}</span>
+                              </div>
+                              {(p.collectorName || p.comment) && (
+                                <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-emerald-50 mt-0.5">
+                                  {p.collectorName && (
+                                    <div className="flex items-center gap-1 px-1.5 py-0.5 bg-emerald-50 text-[9px] font-bold rounded text-emerald-700 border border-emerald-100 max-w-full" title="Executive">
+                                      <span className="opacity-60 uppercase">E:</span>
+                                      <span className="truncate max-w-[100px]">{p.collectorName}</span>
+                                    </div>
+                                  )}
+                                  {p.comment && (
+                                    <span className="italic opacity-60 truncate max-w-[130px] text-[11px]" title={p.comment}>
+                                      "{p.comment}"
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
                         ))}
@@ -668,45 +690,45 @@ export default function SataraVisits() {
       <Modal open={!!editPayment} onClose={() => setEditPayment(null)} title="Update Transaction">
         {editPayment && (
           <div className="space-y-6">
-             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <div>
-                 <label className="block text-xs font-medium text-muted-foreground mb-1">Amount received</label>
-                 <div className="relative">
-                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
-                   <input type="number" value={editPayment.receivedAmount} onChange={e => setEditPayment({...editPayment, receivedAmount: parseFloat(e.target.value) || 0})} className="input-field pl-7 py-2" />
-                 </div>
-               </div>
-               <div>
-                 <label className="block text-xs font-medium text-muted-foreground mb-1">Payment Date</label>
-                 <DateInput value={editPayment.paymentDate} onChange={v => setEditPayment({...editPayment, paymentDate: v})} />
-               </div>
-               <div>
-                 <label className="block text-xs font-medium text-muted-foreground mb-1">Govt charges</label>
-                 <div className="relative">
-                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
-                   <input type="number" value={editPayment.governmentCharges} onChange={e => setEditPayment({...editPayment, governmentCharges: parseFloat(e.target.value) || 0})} className="input-field pl-7 py-2" />
-                 </div>
-               </div>
-               <div>
-                 <label className="block text-xs font-medium text-muted-foreground mb-1">Visit Charges</label>
-                 <div className="relative">
-                   <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
-                   <input type="number" value={editPayment.employeeCommission} onChange={e => setEditPayment({...editPayment, employeeCommission: parseFloat(e.target.value) || 0})} className="input-field pl-7 py-2" />
-                 </div>
-               </div>
-             </div>
-             
-             <div className="pt-2">
-                 <label className="block text-xs font-medium text-muted-foreground mb-1">Collector Name</label>
-                 <input type="text" value={editPayment.collectorName || ''} onChange={e => setEditPayment({...editPayment, collectorName: e.target.value})} className="input-field py-2" placeholder="Agent or collector name" />
-             </div>
-             
-             <div className="flex justify-end gap-3 pt-4 border-t border-border">
-               <button onClick={() => setEditPayment(null)} className="px-4 py-2 text-sm font-medium text-muted-foreground">Discard</button>
-               <button onClick={updatePaymentRecord} disabled={saving} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-500/20 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2">
-                 {saving && <Loader2 className="w-4 h-4 animate-spin"/>} Save Updates
-               </button>
-             </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Amount received</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
+                  <input type="number" value={editPayment.receivedAmount} onChange={e => setEditPayment({ ...editPayment, receivedAmount: parseFloat(e.target.value) || 0 })} className="input-field pl-7 py-2" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Payment Date</label>
+                <DateInput value={editPayment.paymentDate} onChange={v => setEditPayment({ ...editPayment, paymentDate: v })} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Govt charges</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
+                  <input type="number" value={editPayment.governmentCharges} onChange={e => setEditPayment({ ...editPayment, governmentCharges: parseFloat(e.target.value) || 0 })} className="input-field pl-7 py-2" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Visit Charges</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
+                  <input type="number" value={editPayment.employeeCommission} onChange={e => setEditPayment({ ...editPayment, employeeCommission: parseFloat(e.target.value) || 0 })} className="input-field pl-7 py-2" />
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-2">
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Executive Name</label>
+              <input type="text" value={editPayment.collectorName || ''} onChange={e => setEditPayment({ ...editPayment, collectorName: e.target.value })} className="input-field py-2" placeholder="Executive name" />
+            </div>
+
+            <div className="flex justify-end gap-3 pt-4 border-t border-border">
+              <button onClick={() => setEditPayment(null)} className="px-4 py-2 text-sm font-medium text-muted-foreground">Discard</button>
+              <button onClick={updatePaymentRecord} disabled={saving} className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-500/20 active:scale-95 transition-all disabled:opacity-50 flex items-center gap-2">
+                {saving && <Loader2 className="w-4 h-4 animate-spin" />} Save Updates
+              </button>
+            </div>
           </div>
         )}
       </Modal>

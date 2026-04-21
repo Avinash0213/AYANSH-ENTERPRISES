@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Plus, Edit3, Trash2, Loader2, UserPlus } from 'lucide-react';
+import { Shield, Plus, Edit3, Trash2, Loader2, UserPlus, Key } from 'lucide-react';
 import { api } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
 import { cn } from '../lib/utils';
+import PasswordField from '../components/PasswordField';
 import type { User as UserType, CreateUserRequest, UserPermission } from '../types';
 
 const emptyForm: CreateUserRequest = { name: '', email: '', password: '', roleId: 2 };
@@ -205,11 +206,13 @@ export default function UsersPage() {
               className="input-field" placeholder="user@bms.com" />
           </div>
           <div>
-            <label className="block text-xs font-medium text-muted-foreground mb-1">
-              Password {editingId ? '(leave blank to keep)' : '*'}
-            </label>
-            <input type="password" value={form.password} onChange={e => updateField('password', e.target.value)}
-              className="input-field" placeholder="••••••••" />
+            <PasswordField
+              label={editingId ? 'Password (leave blank to keep)' : 'Password *'}
+              value={form.password}
+              onChange={e => updateField('password', e.target.value)}
+              placeholder="••••••••"
+              icon={<Key className="w-3.5 h-3.5" />}
+            />
           </div>
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Role *</label>

@@ -29,5 +29,11 @@ public class Customer
     public User CreatedBy { get; set; } = null!;
     public DateTime CreatedDate { get; set; }
 
+    public decimal Rent { get; set; }
+    public decimal Deposit { get; set; }
+    public decimal QuotedAmount { get; set; }
+
+    public ICollection<Payment> Payments { get; set; } = new List<Payment>();
+
     public bool IsDeleted { get; set; }
 }

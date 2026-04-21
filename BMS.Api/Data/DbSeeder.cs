@@ -23,7 +23,7 @@ public static class DbSeeder
         {
             "USER_VIEW", "USER_CREATE", "USER_UPDATE", "USER_DELETE",
             "CUSTOMER_VIEW", "CUSTOMER_CREATE", "CUSTOMER_UPDATE", "CUSTOMER_DELETE",
-            "PAYMENT_VIEW", "RENEWAL_VIEW", "REPORT_VIEW", "SATARA_VIEW"
+            "PAYMENT_VIEW", "RENEWAL_VIEW", "REPORT_VIEW", "SATARA_VIEW", "ACCESS_MANAGE"
         };
 
         foreach (var pName in permissions)

@@ -24,6 +24,14 @@ public class AppDbContext : DbContext
         builder.Entity<Customer>().HasQueryFilter(c => !c.IsDeleted);
         builder.Entity<Customer>().Property(c => c.Type).HasConversion<int>();
         builder.Entity<Customer>().HasIndex(c => c.SerialNumber).IsUnique();
+        builder.Entity<Customer>().HasIndex(c => c.OwnerPhone);
+        builder.Entity<Customer>().HasIndex(c => c.TenantPhone);
+        builder.Entity<Customer>().HasIndex(c => c.CreatedDate);
+        builder.Entity<Customer>().HasIndex(c => c.Status);
+
+        builder.Entity<Customer>().Property(c => c.Rent).HasPrecision(18, 2);
+        builder.Entity<Customer>().Property(c => c.Deposit).HasPrecision(18, 2);
+        builder.Entity<Customer>().Property(c => c.QuotedAmount).HasPrecision(18, 2);
 
         builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
 

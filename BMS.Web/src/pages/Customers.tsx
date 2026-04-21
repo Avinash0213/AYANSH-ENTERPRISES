@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Search, Building2, UserPlus, Calendar, 
+  Plus, Search, Building2, UserPlus, Calendar,
   Edit3, Loader2, ChevronLeft, ChevronRight, History,
-  CheckCircle2, Hash, ShieldCheck, User, MapPin, 
-  Clock, Phone, Mail, Pencil
+  CheckCircle2, Hash, ShieldCheck, User, MapPin,
+  Clock, Phone, Mail, Pencil, DollarSign
 } from 'lucide-react';
 import { api } from '../api/axios';
 import { cn, fmtDate } from '../lib/utils';
@@ -25,6 +25,7 @@ export default function Customers() {
   const initialSearch = searchParams.get('search') || '';
 
   const [customers, setCustomers] = useState<Customer[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState(initialSearch);
   const [page, setPage] = useState(1);
@@ -42,16 +43,17 @@ export default function Customers() {
 
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
 
-  const fetchCustomers = async (search?: string, type?: number | null, status?: number | null, date?: string) => {
+  const fetchCustomers = async (search?: string, type?: number | null, status?: number | null, date?: string, pageNum: number = 1) => {
     try {
-      let url = '/customers?';
+      let url = `/customers?page=${pageNum}&pageSize=${PAGE_SIZE}&`;
       if (search) url += `search=${encodeURIComponent(search)}&`;
       if (type !== null && type !== undefined) url += `type=${type}&`;
       if (status !== null && status !== undefined) url += `status=${status}&`;
       if (date) url += `dateFilter=${date}&`;
-      
+
       const { data } = await api.get(url);
-      setCustomers(data);
+      setCustomers(data.items);
+      setTotalCount(data.totalCount);
     } catch { console.error('Error fetching customers'); }
     finally { setLoading(false); }
   };
@@ -59,7 +61,7 @@ export default function Customers() {
   const updatePaymentRecord = async () => {
     if (!editPayment) return;
     const pId = editPayment.id || editPayment.Id;
-    
+
     if (!pId) {
       alert("System Error: Payment ID is missing from the record.");
       return;
@@ -75,7 +77,7 @@ export default function Customers() {
         comment: editPayment.comment,
         collectorName: editPayment.collectorName
       });
-      
+
       const customerId = viewCustomer?.id || editingId;
       if (customerId) {
         setLoadingPayments(true);
@@ -83,12 +85,12 @@ export default function Customers() {
         setCustomerPayments(data);
       }
       setEditPayment(null);
-    } catch (err: any) { 
+    } catch (err: any) {
       console.error('Update payment error', err);
       const msg = err.response?.data?.message || err.response?.data || err.message;
       alert(`Update Failed: ${msg}`);
     }
-    finally { 
+    finally {
       setSaving(false);
       setLoadingPayments(false);
     }
@@ -125,8 +127,8 @@ export default function Customers() {
 
   useEffect(() => {
     setLoading(true);
-    fetchCustomers(debouncedSearchTerm, typeFilter, statusFilter, dateFilter);
-  }, [debouncedSearchTerm, typeFilter, statusFilter, dateFilter]);
+    fetchCustomers(debouncedSearchTerm, typeFilter, statusFilter, dateFilter, page);
+  }, [debouncedSearchTerm, typeFilter, statusFilter, dateFilter, page]);
 
   useEffect(() => {
     const customerId = viewCustomer?.id || editingId;
@@ -145,8 +147,8 @@ export default function Customers() {
     }
   }, [viewCustomer, editingId]);
 
-  const totalPages = Math.ceil(customers.length / PAGE_SIZE);
-  const paginatedCustomers = customers.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const paginatedCustomers = customers; // Already server-side paginated
 
   const openCreate = () => {
     setEditingId(null);
@@ -275,9 +277,9 @@ export default function Customers() {
                           <span className={cn(
                             "inline-flex px-2 py-0.5 rounded-full text-xs font-medium",
                             c.status === 0 ? "bg-blue-50 text-blue-700" :
-                            c.status === 1 ? "bg-amber-50 text-amber-700" :
-                            c.status === 2 ? "bg-purple-50 text-purple-700" :
-                            "bg-emerald-50 text-emerald-700"
+                              c.status === 1 ? "bg-amber-50 text-amber-700" :
+                                c.status === 2 ? "bg-purple-50 text-purple-700" :
+                                  "bg-emerald-50 text-emerald-700"
                           )}>
                             {c.status === 0 ? 'Preparation' : c.status === 1 ? 'KYC' : c.status === 2 ? 'Submitted' : 'Completed'}
                           </span>
@@ -316,9 +318,16 @@ export default function Customers() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="text-sm text-muted-foreground">
-                        {fmtDate(c.createdDate)}
-                      </span>
+                      <div className="flex flex-col gap-1">
+                        <span className="text-sm text-muted-foreground font-medium">
+                          {fmtDate(c.createdDate)}
+                        </span>
+                        {c.tokenNumber && (
+                          <span className="text-[10px] font-mono bg-muted dark:bg-muted/10 px-1.5 py-0.5 rounded text-muted-foreground w-fit border border-border/50">
+                            #{c.tokenNumber}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1.5">
@@ -409,9 +418,9 @@ export default function Customers() {
                         <span className={cn(
                           "inline-flex px-2 py-0.5 rounded-full text-xs font-medium",
                           c.status === 0 ? "bg-blue-50 text-blue-700" :
-                          c.status === 1 ? "bg-amber-50 text-amber-700" :
-                          c.status === 2 ? "bg-purple-50 text-purple-700" :
-                          "bg-emerald-50 text-emerald-700"
+                            c.status === 1 ? "bg-amber-50 text-amber-700" :
+                              c.status === 2 ? "bg-purple-50 text-purple-700" :
+                                "bg-emerald-50 text-emerald-700"
                         )}>
                           {c.status === 0 ? 'Preparation' : c.status === 1 ? 'KYC' : c.status === 2 ? 'Submitted' : 'Completed'}
                         </span>
@@ -518,9 +527,9 @@ export default function Customers() {
         )}
       </section>
 
-      <CustomerFormModal 
-        open={modalOpen} 
-        onClose={() => setModalOpen(false)} 
+      <CustomerFormModal
+        open={modalOpen}
+        onClose={() => setModalOpen(false)}
         customerId={editingId}
         onSuccess={() => {
           fetchCustomers();
@@ -555,8 +564,8 @@ export default function Customers() {
               <div className={cn(
                 "px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5",
                 viewCustomer.type === 0 ? "bg-red-50 text-red-700 border-red-100" :
-                viewCustomer.type === 1 ? "bg-amber-50 text-amber-700 border-amber-100" :
-                "bg-muted text-muted-foreground border-border"
+                  viewCustomer.type === 1 ? "bg-amber-50 text-amber-700 border-amber-100" :
+                    "bg-muted text-muted-foreground border-border"
               )}>
                 <ShieldCheck className="w-3.5 h-3.5" />
                 {viewCustomer.typeName}
@@ -627,6 +636,33 @@ export default function Customers() {
                   </div>
                 </div>
 
+                <div className="bg-emerald-50 dark:bg-emerald-900/10 p-5 rounded-xl border border-emerald-100 dark:border-emerald-900/20 space-y-4">
+                  <h3 className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider flex items-center justify-between">
+                    Agreement Terms
+                    <DollarSign className="w-3.5 h-3.5" />
+                  </h3>
+                  <div className="grid grid-cols-2 gap-y-4 gap-x-2">
+                    <div>
+                      <p className="text-[10px] font-medium text-emerald-600 dark:text-emerald-500 uppercase">Rent / Month</p>
+                      <p className="text-lg font-bold text-foreground">₹ {viewCustomer.rent.toLocaleString()}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-medium text-emerald-600 dark:text-emerald-500 uppercase">Security Deposit</p>
+                      <p className="text-lg font-bold text-foreground">₹ {viewCustomer.deposit.toLocaleString()}</p>
+                    </div>
+                    <div className="col-span-2 pt-2 border-t border-emerald-200/50 dark:border-emerald-800/50 flex justify-between items-end">
+                      <div>
+                        <p className="text-[10px] font-medium text-emerald-600 dark:text-emerald-500 uppercase">Quoted Premium</p>
+                        <p className="text-xl font-black text-foreground">₹ {viewCustomer.quotedAmount.toLocaleString()}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-[10px] font-medium text-red-600 dark:text-red-400 uppercase">Remaining</p>
+                        <p className="text-xl font-black text-red-600 dark:text-red-400">₹ {viewCustomer.remainingAmount.toLocaleString()}</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="bg-card p-5 rounded-xl border border-border space-y-4">
                   <h3 className="text-xs font-medium text-foreground flex items-center justify-between">
                     Agreement Timeline
@@ -682,26 +718,42 @@ export default function Customers() {
                             <p className="text-base font-semibold text-emerald-300">₹ {customerPayments.reduce((acc, p) => acc + p.profit, 0).toLocaleString()}</p>
                           </div>
                         </div>
-                        <div className="max-h-[160px] overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                        <div className="max-h-[180px] overflow-y-auto space-y-2.5 pr-1.5 custom-scrollbar">
                           {customerPayments.map(p => (
-                            <div key={p.id} className="bg-indigo-700/50 p-3 rounded-lg text-sm border border-indigo-500/30">
-                              <div className="flex justify-between items-start mb-1">
-                                <span className="font-medium">₹ {p.receivedAmount.toLocaleString()}</span>
-                                <span className="text-xs text-indigo-300">{fmtDate(p.paymentDate)}</span>
+                            <div key={p.id} className="bg-white/10 backdrop-blur-sm p-3.5 rounded-xl border border-white/10 hover:bg-white/15 transition-colors">
+                              <div className="flex justify-between items-start gap-3 mb-2">
+                                <span className="text-base font-bold text-white tracking-tight">₹ {p.receivedAmount.toLocaleString()}</span>
+                                <span className="text-[10px] font-semibold text-indigo-200 bg-indigo-500/30 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                                  {fmtDate(p.paymentDate)}
+                                </span>
                               </div>
-                              <div className="flex justify-between items-center text-xs text-indigo-200">
-                                <span>Profit: ₹ {p.profit.toLocaleString()}</span>
-                                <div className="flex items-center gap-2">
-                                  {p.collectorName && <span className="px-1.5 py-0.5 bg-indigo-500/20 text-[10px] uppercase rounded text-indigo-200" title="Collector">C: {p.collectorName}</span>}
-                                  {p.comment && <span className="italic line-clamp-1 max-w-[120px] opacity-80" title={p.comment}>"{p.comment}"</span>}
-                                  <button
-                                    onClick={() => setEditPayment({ ...p })}
-                                    aria-label="Edit payment entry"
-                                    className="p-1 hover:bg-indigo-600 rounded text-indigo-300 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-white/30"
-                                  >
-                                    <Pencil className="w-3 h-3" />
-                                  </button>
+                              <div className="flex flex-col gap-1.5 text-xs text-indigo-100">
+                                <div className="flex items-center justify-between">
+                                  <span className="opacity-70">Internal Profit:</span>
+                                  <span className="font-semibold text-emerald-300">₹ {p.profit.toLocaleString()}</span>
                                 </div>
+                                {(p.collectorName || p.comment) && (
+                                  <div className="flex flex-wrap items-center gap-1.5 pt-1.5 border-t border-white/5 mt-0.5">
+                                    {p.collectorName && (
+                                      <div className="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-500/20 text-[9px] font-bold rounded text-indigo-100 border border-indigo-400/20 max-w-full" title="Executive">
+                                        <span className="opacity-60 uppercase">E:</span>
+                                        <span className="truncate max-w-[120px]">{p.collectorName}</span>
+                                      </div>
+                                    )}
+                                    {p.comment && (
+                                      <span className="italic opacity-60 truncate max-w-[150px] text-[11px]" title={p.comment}>
+                                        "{p.comment}"
+                                      </span>
+                                    )}
+                                    <div className="flex-1" />
+                                    <button
+                                      onClick={() => setEditPayment({ ...p })}
+                                      className="p-1.5 bg-white/5 hover:bg-white/20 rounded-lg text-white transition-all focus:outline-none focus:ring-2 focus:ring-white/20 ml-auto"
+                                    >
+                                      <Pencil className="w-3 h-3" />
+                                    </button>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           ))}
@@ -755,34 +807,34 @@ export default function Customers() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Received Amount (₹) *</label>
-                <input type="number" value={editPayment.receivedAmount} onChange={e => setEditPayment({...editPayment, receivedAmount: e.target.value})}
+                <input type="number" value={editPayment.receivedAmount} onChange={e => setEditPayment({ ...editPayment, receivedAmount: e.target.value })}
                   className="input-field" placeholder="e.g. 15000" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Payment Date *</label>
-                <DateInput value={editPayment.paymentDate} onChange={v => setEditPayment({...editPayment, paymentDate: v})} />
+                <DateInput value={editPayment.paymentDate} onChange={v => setEditPayment({ ...editPayment, paymentDate: v })} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Govt Charges (₹)</label>
-                <input type="number" value={editPayment.governmentCharges} onChange={e => setEditPayment({...editPayment, governmentCharges: e.target.value})}
+                <input type="number" value={editPayment.governmentCharges} onChange={e => setEditPayment({ ...editPayment, governmentCharges: e.target.value })}
                   className="input-field" placeholder="e.g. 500" />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Visit Charges (₹)</label>
-                <input type="number" value={editPayment.employeeCommission} onChange={e => setEditPayment({...editPayment, employeeCommission: e.target.value})}
+                <input type="number" value={editPayment.employeeCommission} onChange={e => setEditPayment({ ...editPayment, employeeCommission: e.target.value })}
                   className="input-field" placeholder="e.g. 1000" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Reference / Comment</label>
-              <textarea value={editPayment.comment || ''} onChange={e => setEditPayment({...editPayment, comment: e.target.value})}
+              <textarea value={editPayment.comment || ''} onChange={e => setEditPayment({ ...editPayment, comment: e.target.value })}
                 className="input-field min-h-[72px] resize-none" rows={2} placeholder="Add any details about this update..." />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Collector Name</label>
-              <input type="text" value={editPayment.collectorName || ''} onChange={e => setEditPayment({...editPayment, collectorName: e.target.value})}
-                className="input-field" placeholder="Who collected this payment?" />
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Executive</label>
+              <input type="text" value={editPayment.collectorName || ''} onChange={e => setEditPayment({ ...editPayment, collectorName: e.target.value })}
+                className="input-field" placeholder="Who executed?" />
             </div>
 
             <div className="flex justify-end gap-3 pt-4 border-t border-border">

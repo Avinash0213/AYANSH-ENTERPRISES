@@ -32,16 +32,16 @@ export default function Dashboard() {
     const fetchData = async () => {
       try {
         const [{ data: customers }, { data: renewals }] = await Promise.all([
-          api.get('/customers'),
+          api.get('/customers?pageSize=5'),
           api.get('/renewals')
         ]);
         
         setStats({
-          total: customers.length,
-          active: customers.filter((c: Customer) => c.type !== 2).length,
+          total: customers.totalCount,
+          active: customers.items.filter((c: Customer) => c.type !== 2).length,
           renewals: renewals.length
         });
-        setRecentCustomers(customers.slice(0, 5));
+        setRecentCustomers(customers.items);
       } catch (err) {
         console.error('Error fetching dashboard stats');
       }

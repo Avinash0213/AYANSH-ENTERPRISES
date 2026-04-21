@@ -21,10 +21,14 @@ public class PaymentsController : ControllerBase
 
     [HttpGet]
     [RequirePermission("PAYMENT_VIEW")]
-    public async Task<IActionResult> GetAll([FromQuery] DateOnly? from, [FromQuery] DateOnly? to)
+    public async Task<IActionResult> GetAll(
+        [FromQuery] DateOnly? from, 
+        [FromQuery] DateOnly? to,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
-        var payments = await _paymentService.GetAllAsync(from, to);
-        return Ok(payments);
+        var result = await _paymentService.GetAllPagedAsync(from, to, page, pageSize);
+        return Ok(result);
     }
 
     [HttpGet("customer/{customerId}")]

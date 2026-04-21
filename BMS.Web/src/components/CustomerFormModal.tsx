@@ -29,7 +29,11 @@ const emptyForm = {
   paymentDate: new Date().toISOString().split('T')[0],
   paymentComment: '',
   collectorName: '',
-  address: ''
+  address: '',
+  rent: 0,
+  deposit: 0,
+  quotedAmount: 0,
+  remainingAmount: 0
 };
 
 export default function CustomerFormModal({ open, onClose, customerId, onSuccess, initialType }: CustomerFormModalProps) {
@@ -64,7 +68,11 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
         type: initialType ?? data.type,
         status: data.status,
         startDate: data.startDate || '',
-        period: data.period || 11
+        period: data.period || 11,
+        rent: data.rent || 0,
+        deposit: data.deposit || 0,
+        quotedAmount: data.quotedAmount || 0,
+        remainingAmount: data.remainingAmount || 0
       });
     } catch (err) { console.error('Error fetching customer', err); }
     finally { setLoading(false); }
@@ -108,7 +116,10 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
         tokenNumber: form.tokenNumber || null,
         inquiryFrom: form.inquiryFrom || null,
         comment: form.comment || null,
-        address: form.address || null
+        address: form.address || null,
+        rent: form.rent,
+        deposit: form.deposit,
+        quotedAmount: form.quotedAmount
       };
 
       let currentId = customerId;
@@ -223,6 +234,52 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Token #</label>
                 <input value={form.tokenNumber} onChange={e => updateField('tokenNumber', e.target.value)} className="input-field font-mono" />
               </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Inquiry From</label>
+                <CustomSelect value={form.inquiryFrom} onChange={v => updateField('inquiryFrom', String(v))} 
+                  options={[{value: '', label: 'Select Source'}, {value: 'Self', label: 'Self'}, {value: 'Agent', label: 'Agent'}]} />
+              </div>
+              <div className="md:col-span-3">
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Administrative Notes / Comments</label>
+                <textarea value={form.comment} onChange={e => updateField('comment', e.target.value)} className="input-field resize-none" rows={2} placeholder="Add any specific notes about this customer..." />
+              </div>
+            </div>
+          </section>
+
+          {/* Section: Financial Terms */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-border">
+              <DollarSign className="w-4 h-4 text-emerald-600" />
+              <h2 className="text-sm font-semibold text-foreground">Financial Terms</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Monthly Rent</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
+                  <input type="number" value={form.rent || ''} onChange={e => updateField('rent', parseFloat(e.target.value) || 0)} className="input-field pl-7" placeholder="0" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Security Deposit</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
+                  <input type="number" value={form.deposit || ''} onChange={e => updateField('deposit', parseFloat(e.target.value) || 0)} className="input-field pl-7" placeholder="0" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Quoted Amount</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-xs font-semibold">₹</span>
+                  <input type="number" value={form.quotedAmount || ''} onChange={e => updateField('quotedAmount', parseFloat(e.target.value) || 0)} className="input-field pl-7" placeholder="0" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1 text-red-600">Remaining Balance</label>
+                <div className="input-field bg-red-50 dark:bg-red-900/20 font-bold text-red-700 dark:text-red-400">
+                  ₹ {form.remainingAmount?.toLocaleString() || '0'}
+                </div>
+              </div>
             </div>
           </section>
 
@@ -277,9 +334,9 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
                   className="input-field py-2" placeholder="e.g. Paid via GPay" />
               </div>
               <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Collector</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Executive</label>
                 <input type="text" value={form.collectorName || ''} onChange={e => updateField('collectorName', e.target.value)}
-                  className="input-field py-2" placeholder="Who collected?" />
+                  className="input-field py-2" placeholder="Who executed?" />
               </div>
             </div>
           </section>
@@ -349,8 +406,8 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
              </div>
              
              <div className="pt-2">
-                 <label className="block text-xs font-medium text-muted-foreground mb-1">Collector Name</label>
-                 <input type="text" value={editPayment.collectorName || ''} onChange={e => setEditPayment({...editPayment, collectorName: e.target.value})} className="input-field py-2" placeholder="Agent or collector name" />
+                 <label className="block text-xs font-medium text-muted-foreground mb-1">Executive</label>
+                 <input type="text" value={editPayment.collectorName || ''} onChange={e => setEditPayment({...editPayment, collectorName: e.target.value})} className="input-field py-2" placeholder="Who executed?" />
              </div>
              
              <div className="flex justify-end gap-3 pt-4 border-t border-border">

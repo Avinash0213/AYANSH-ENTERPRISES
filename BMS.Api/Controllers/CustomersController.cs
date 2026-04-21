@@ -18,17 +18,27 @@ public class CustomersController : ControllerBase
 {
     private readonly AppDbContext _db;
     private readonly CustomerService _customerService;
+    private readonly NotificationService _notificationService;
 
-    public CustomersController(AppDbContext db, CustomerService customerService)
+    public CustomersController(AppDbContext db, CustomerService customerService, NotificationService notificationService)
     {
         _db = db;
         _customerService = customerService;
+        _notificationService = notificationService;
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetAll([FromQuery] string? search, [FromQuery] int? type, [FromQuery] int? status, [FromQuery] string? dateFilter)
+    [RequirePermission("CUSTOMER_VIEW")]
+    public async Task<IActionResult> GetAll(
+        [FromQuery] string? search, 
+        [FromQuery] int? type, 
+        [FromQuery] int? status, 
+        [FromQuery] string? dateFilter,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 10)
     {
         var query = _db.Customers
+            .AsNoTracking()
             .Include(c => c.CreatedBy)
             .Where(c => !c.IsDeleted)
             .AsQueryable();
@@ -80,8 +90,12 @@ public class CustomersController : ControllerBase
             );
         }
 
-        var customers = await query
+        var totalCount = await query.CountAsync();
+        
+        var items = await query
             .OrderByDescending(c => c.CreatedDate)
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
             .Select(c => new CustomerResponse
             {
                 Id = c.Id,
@@ -103,17 +117,30 @@ public class CustomersController : ControllerBase
                 StartDate = c.StartDate,
                 Period = c.Period,
                 EndDate = c.EndDate,
+                Rent = c.Rent,
+                Deposit = c.Deposit,
+                QuotedAmount = c.QuotedAmount,
+                RemainingAmount = c.QuotedAmount - (c.Payments.Any() ? c.Payments.Sum(p => p.ReceivedAmount) : 0),
                 CreatedDate = c.CreatedDate,
                 CreatedByName = c.CreatedBy != null ? c.CreatedBy.Name : "System"
             })
             .ToListAsync();
-        return Ok(customers);
+
+        return Ok(new PagedResponse<CustomerResponse>
+        {
+            Items = items,
+            TotalCount = totalCount,
+            PageNumber = page,
+            PageSize = pageSize
+        });
     }
 
     [HttpGet("{id}")]
+    [RequirePermission("CUSTOMER_VIEW")]
     public async Task<IActionResult> GetById(int id)
     {
         var c = await _db.Customers
+            .AsNoTracking()
             .Include(c => c.CreatedBy)
             .FirstOrDefaultAsync(c => c.Id == id);
 
@@ -140,12 +167,17 @@ public class CustomersController : ControllerBase
             StartDate = c.StartDate,
             Period = c.Period,
             EndDate = c.EndDate,
+            Rent = c.Rent,
+            Deposit = c.Deposit,
+            QuotedAmount = c.QuotedAmount,
+            RemainingAmount = c.QuotedAmount - _db.Payments.Where(p => p.CustomerId == c.Id).Sum(p => p.ReceivedAmount),
             CreatedDate = c.CreatedDate,
             CreatedByName = c.CreatedBy?.Name ?? "System"
         });
     }
 
     [HttpPost]
+    [RequirePermission("CUSTOMER_CREATE")]
     public async Task<IActionResult> Create([FromBody] CreateCustomerRequest req)
     {
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
@@ -165,7 +197,10 @@ public class CustomersController : ControllerBase
             Type = req.Type,
             Status = req.Status,
             StartDate = req.StartDate,
-            Period = req.Period
+            Period = req.Period,
+            Rent = req.Rent,
+            Deposit = req.Deposit,
+            QuotedAmount = req.QuotedAmount
         };
 
         var created = await _customerService.CreateAsync(customer, userId);
@@ -190,11 +225,16 @@ public class CustomersController : ControllerBase
             StartDate = created.StartDate,
             Period = created.Period,
             EndDate = created.EndDate,
+            Rent = created.Rent,
+            Deposit = created.Deposit,
+            QuotedAmount = created.QuotedAmount,
+            RemainingAmount = created.QuotedAmount, // No payments yet
             CreatedDate = created.CreatedDate
         });
     }
 
     [HttpPut("{id}")]
+    [RequirePermission("CUSTOMER_UPDATE")]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCustomerRequest req)
     {
         var customer = await _db.Customers.FindAsync(id);
@@ -211,9 +251,14 @@ public class CustomersController : ControllerBase
         customer.Comment = req.Comment;
         customer.Address = req.Address;
         customer.Type = req.Type;
+
+        var oldStatus = customer.Status;
         customer.Status = req.Status;
         customer.StartDate = req.StartDate;
         customer.Period = req.Period;
+        customer.Rent = req.Rent;
+        customer.Deposit = req.Deposit;
+        customer.QuotedAmount = req.QuotedAmount;
         
         if (req.Period.HasValue && req.StartDate.HasValue)
         {
@@ -225,6 +270,12 @@ public class CustomersController : ControllerBase
         }
 
         await _db.SaveChangesAsync();
+
+        if (oldStatus != CustomerStatus.Completed && req.Status == CustomerStatus.Completed)
+        {
+            await _notificationService.SendCompletionNotificationAsync(customer);
+        }
+
         return Ok(new CustomerResponse
         {
             Id = customer.Id,
@@ -246,11 +297,16 @@ public class CustomersController : ControllerBase
             StartDate = customer.StartDate,
             Period = customer.Period,
             EndDate = customer.EndDate,
+            Rent = customer.Rent,
+            Deposit = customer.Deposit,
+            QuotedAmount = customer.QuotedAmount,
+            RemainingAmount = customer.QuotedAmount - _db.Payments.Where(p => p.CustomerId == customer.Id).Sum(p => p.ReceivedAmount),
             CreatedDate = customer.CreatedDate
         });
     }
 
     [HttpDelete("{id}")]
+    [RequirePermission("CUSTOMER_DELETE")]
     public async Task<IActionResult> Delete(int id)
     {
         var customer = await _db.Customers.FindAsync(id);

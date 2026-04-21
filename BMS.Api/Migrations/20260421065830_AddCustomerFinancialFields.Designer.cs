@@ -3,6 +3,7 @@ using System;
 using BMS.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BMS.Api.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260421065830_AddCustomerFinancialFields")]
+    partial class AddCustomerFinancialFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -158,8 +161,7 @@ namespace BMS.Api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId", "Type", "SentAt")
-                        .HasDatabaseName("IX_NotificationLogs_CustomerId_Type_SentAt");
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("NotificationLogs");
                 });

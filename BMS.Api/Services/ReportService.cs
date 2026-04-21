@@ -159,7 +159,7 @@ public class ReportService
         return ms.ToArray();
     }
 
-    public async Task<byte[]> ExportRevenueExpenseLedgerAsync(DateOnly? from, DateOnly? to)
+    public async Task<byte[]> ExportRevenueExpenseLedgerAsync(DateOnly? from, DateOnly? to, string? source = null)
     {
         var query = _db.Payments
             .Include(p => p.Customer)
@@ -170,6 +170,14 @@ public class ReportService
             query = query.Where(p => p.PaymentDate >= from.Value);
         if (to.HasValue)
             query = query.Where(p => p.PaymentDate <= to.Value);
+
+        if (!string.IsNullOrEmpty(source))
+        {
+            if (source.Equals("customer", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(p => p.CustomerId != null);
+            else if (source.Equals("visit", StringComparison.OrdinalIgnoreCase))
+                query = query.Where(p => p.SataraVisitCode != null);
+        }
 
         var payments = await query.OrderByDescending(p => p.PaymentDate).ToListAsync();
 
@@ -182,7 +190,7 @@ public class ReportService
         var borderColor = XLColor.FromHtml("#cbd5e1"); // Slate 300
 
         var headers = new[] { 
-            "Trans Date", "Customer Serial", "Owner Name", 
+            "Trans Date", "Reference/Serial No", "Entity/Owner Name", 
             "Gross Received (A)", "Govt Charges (B)", "Visit Charges (C)", 
             "Net Taxable Profit (A-B-C)", "Payment Method", "Remarks" 
         };
@@ -205,8 +213,8 @@ public class ReportService
             dateCell.SetValue(p.PaymentDate.ToDateTime(TimeOnly.MinValue));
             dateCell.Style.DateFormat.Format = "dd/MM/yyyy";
 
-            ws.Cell(row, 2).SetValue(p.Customer?.SerialNumber ?? "N/A");
-            ws.Cell(row, 3).SetValue(p.Customer?.OwnerName ?? "N/A");
+            ws.Cell(row, 2).SetValue(p.Customer?.SerialNumber ?? p.SataraVisitCode ?? "N/A");
+            ws.Cell(row, 3).SetValue(p.Customer?.OwnerName ?? "Client Visit");
             
             var grossCell = ws.Cell(row, 4);
             grossCell.SetValue(p.ReceivedAmount);

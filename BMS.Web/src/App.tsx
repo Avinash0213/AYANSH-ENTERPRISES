@@ -9,7 +9,7 @@ import Renewals from './pages/Renewals';
 import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import UsersPage from './pages/Users';
-import SataraVisits from './pages/SataraVisits';
+import SataraVisits from './pages/SataraVisitsPage';
 import Layout from './components/Layout';
 
 function ProtectedRoute({ children, permission }: { children: React.ReactNode; permission?: string }) {
@@ -57,7 +57,7 @@ function AppRoutes() {
       <Route path="/login" element={isAuthenticated ? <Navigate to="/customers" replace /> : <Login />} />
 
       <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-      <Route path="/customers" element={<ProtectedRoute><Customers /></ProtectedRoute>} />
+      <Route path="/customers" element={<ProtectedRoute permission="CUSTOMER_VIEW"><Customers /></ProtectedRoute>} />
       <Route path="/renewals" element={<ProtectedRoute permission="RENEWAL_VIEW"><Renewals /></ProtectedRoute>} />
       <Route path="/payments" element={<ProtectedRoute permission="PAYMENT_VIEW"><Payments /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute permission="REPORT_VIEW"><Reports /></ProtectedRoute>} />

@@ -37,6 +37,7 @@ export default function Payments() {
   const [form, setForm] = useState<CreatePaymentRequest>(emptyForm);
   const [saving, setSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [sourceFilter, setSourceFilter] = useState('all');
   const [dateFilters, setDateFilters] = useState(getDefaultDates());
 
   const fetchData = async (from?: string, to?: string) => {
@@ -51,23 +52,32 @@ export default function Payments() {
         api.get(`/payments/summary?${params.toString()}`),
         api.get('/customers')
       ]);
-      setPayments(paymentsRes.data);
+      setPayments(paymentsRes.data.items || []);
       setSummary(summaryRes.data);
-      setCustomers(custRes.data);
+      setCustomers(custRes.data.items || []);
     } catch (err) { console.error('Fetch error', err); }
     finally { setLoading(false); }
   };
 
-  useEffect(() => { 
-    fetchData(dateFilters.from, dateFilters.to); 
+  useEffect(() => {
+    fetchData(dateFilters.from, dateFilters.to);
   }, [dateFilters.from, dateFilters.to]);
 
-  const filteredPayments = (payments || []).filter(p => 
-    (p.customerOwner || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+  const filteredPayments = (payments || []).filter(p => {
+    const matchesSearch = (p.customerOwner || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.customerSerial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
     (p.sataraVisitCode || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.collectorName || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+    (p.collectorName || '').toLowerCase().includes(searchTerm.toLowerCase());
+
+    let matchesSource = true;
+    if (sourceFilter === 'customer') {
+      matchesSource = p.customerId != null;
+    } else if (sourceFilter === 'visit') {
+      matchesSource = p.sataraVisitCode != null;
+    }
+
+    return matchesSearch && matchesSource;
+  });
 
   const computedProfit = form.receivedAmount - form.governmentCharges - form.employeeCommission;
 
@@ -114,37 +124,45 @@ export default function Payments() {
         <div className="flex flex-wrap items-center gap-2 mb-4">
           <Filter className="w-4 h-4 text-red-600" />
           <h2 id="filters-heading" className="text-sm font-semibold text-foreground mr-3">Date Filter</h2>
-          
+
           <div className="flex flex-wrap gap-2">
             {[
-              { label: 'Today', range: () => {
-                const now = new Date();
-                return { from: now, to: now };
-              }},
-              { label: 'This Week', range: () => {
-                const now = new Date();
-                const day = now.getDay() || 7;
-                const from = new Date(now);
-                from.setDate(now.getDate() - day + 1);
-                return { from, to: now };
-              }},
-              { label: 'This Month', range: () => {
-                const now = new Date();
-                return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
-              }},
-              { label: 'Financial Year', range: () => {
-                const now = new Date();
-                const year = now.getMonth() + 1 < 4 ? now.getFullYear() - 1 : now.getFullYear();
-                return { from: new Date(year, 3, 1), to: now };
-              }},
+              {
+                label: 'Today', range: () => {
+                  const now = new Date();
+                  return { from: now, to: now };
+                }
+              },
+              {
+                label: 'This Week', range: () => {
+                  const now = new Date();
+                  const day = now.getDay() || 7;
+                  const from = new Date(now);
+                  from.setDate(now.getDate() - day + 1);
+                  return { from, to: now };
+                }
+              },
+              {
+                label: 'This Month', range: () => {
+                  const now = new Date();
+                  return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+                }
+              },
+              {
+                label: 'Financial Year', range: () => {
+                  const now = new Date();
+                  const year = now.getMonth() + 1 < 4 ? now.getFullYear() - 1 : now.getFullYear();
+                  return { from: new Date(year, 3, 1), to: now };
+                }
+              },
             ].map((btn) => (
               <button
                 key={btn.label}
                 onClick={() => {
                   const { from, to } = btn.range();
-                  setDateFilters({ 
-                    from: from.toISOString().split('T')[0], 
-                    to: to.toISOString().split('T')[0] 
+                  setDateFilters({
+                    from: from.toISOString().split('T')[0],
+                    to: to.toISOString().split('T')[0]
                   });
                 }}
                 className="px-3 py-1.5 bg-background border border-border rounded-lg text-xs font-medium text-muted-foreground hover:bg-red-50 hover:border-red-200 hover:text-red-700 transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20"
@@ -160,7 +178,7 @@ export default function Payments() {
             </button>
           </div>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">From date</label>
             <DateInput value={dateFilters.from} onChange={v => setDateFilters(f => ({ ...f, from: v }))} />
@@ -169,12 +187,24 @@ export default function Payments() {
             <label className="block text-xs font-medium text-muted-foreground mb-1">To date</label>
             <DateInput value={dateFilters.to} onChange={v => setDateFilters(f => ({ ...f, to: v }))} />
           </div>
+          <div>
+            <label className="block text-xs font-medium text-muted-foreground mb-1">Source</label>
+            <CustomSelect
+              value={sourceFilter}
+              onChange={(v) => setSourceFilter(String(v))}
+              options={[
+                { value: 'all', label: 'Combined' },
+                { value: 'customer', label: 'Customer' },
+                { value: 'visit', label: 'Client Visit' }
+              ]}
+            />
+          </div>
           <div className="flex items-end">
             <button
               onClick={() => fetchData(dateFilters.from, dateFilters.to)}
               className="btn-primary w-full flex items-center justify-center gap-2 active:scale-95"
             >
-              <Calendar className="w-4 h-4" /> Apply Dates
+              <Calendar className="w-4 h-4" /> Apply Filters
             </button>
           </div>
         </div>
@@ -211,7 +241,7 @@ export default function Payments() {
           <div className="flex items-center gap-3">
             <div className="relative flex-1 max-w-md group">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground group-focus-within:text-red-500 transition-colors">
-                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
               </span>
               <input
                 type="text"
@@ -235,7 +265,7 @@ export default function Payments() {
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Govt</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Visit Charges</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Profit</th>
-                <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Collector</th>
+                <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Executive</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Date</th>
               </tr>
             </thead>
@@ -379,8 +409,8 @@ export default function Payments() {
           </div>
 
           {/* Live Profit Preview */}
-          <div className={`p-4 rounded-xl border ${computedProfit >= 0 
-            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20' 
+          <div className={`p-4 rounded-xl border ${computedProfit >= 0
+            ? 'bg-emerald-50 dark:bg-emerald-500/10 border-emerald-100 dark:border-emerald-500/20'
             : 'bg-rose-50 dark:bg-rose-500/10 border-rose-100 dark:border-rose-500/20'}`}>
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium text-foreground">Calculated Profit</span>
@@ -397,9 +427,9 @@ export default function Payments() {
               <DateInput value={form.paymentDate} onChange={v => updateField('paymentDate', v)} />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">Collector</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Executive</label>
               <input type="text" value={form.collectorName || ''} onChange={e => updateField('collectorName', e.target.value)}
-                className="input-field" placeholder="Agenty name" />
+                className="input-field" placeholder="Who executed?" />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Comment</label>

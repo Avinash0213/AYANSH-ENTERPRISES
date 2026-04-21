@@ -43,9 +43,9 @@ public class ReportsController : ControllerBase
 
     [HttpGet("export/ledger")]
     [RequirePermission("REPORT_VIEW")]
-    public async Task<IActionResult> ExportLedger([FromQuery] DateOnly? from, [FromQuery] DateOnly? to)
+    public async Task<IActionResult> ExportLedger([FromQuery] DateOnly? from, [FromQuery] DateOnly? to, [FromQuery] string? source)
     {
-        var bytes = await _reportService.ExportRevenueExpenseLedgerAsync(from, to);
+        var bytes = await _reportService.ExportRevenueExpenseLedgerAsync(from, to, source);
         return File(bytes,
             "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             $"bms-payment-ledger-{DateTime.Now:yyyyMMdd-HHmmss}.xlsx");
