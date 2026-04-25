@@ -5,6 +5,7 @@ import { api } from '../api/axios';
 import { cn, fmtDate } from '../lib/utils';
 import CustomerFormModal from '../components/CustomerFormModal';
 
+
 export default function Renewals() {
   const [renewals, setRenewals] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
