@@ -57,7 +57,7 @@ export default function Renewals() {
     return matchesFilter && matchesSearch;
   });
 
-  const handleEmail = async (customerId: number, name: string, serialNumber: string, endDate: string, targetEmail?: string) => {
+  const handleEmail = async (customerId: number, name: string, targetEmail?: string) => {
     const key = `email-${customerId}-${targetEmail}`;
     if (processing[key]) return;
     
@@ -76,7 +76,7 @@ export default function Renewals() {
     }
   };
 
-  const handleSms = async (customerId: number, name: string, serialNumber: string, endDate: string, targetPhone?: string) => {
+  const handleSms = async (customerId: number, name: string, targetPhone?: string) => {
     const key = `sms-${customerId}-${targetPhone}`;
     if (processing[key]) return;
     
@@ -297,7 +297,7 @@ export default function Renewals() {
                           <div className="flex items-center gap-1.5">
                             {r.ownerEmail ? (
                               <button
-                                onClick={() => handleEmail(r.id, r.ownerName, r.serialNumber, r.endDate, r.ownerEmail)}
+                                onClick={() => handleEmail(r.id, r.ownerName, r.ownerEmail)}
                                 disabled={processing[`email-${r.id}-${r.ownerEmail}`]}
                                 aria-label={`Email owner ${r.ownerName}`}
                                 className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 hover:bg-red-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
@@ -311,7 +311,7 @@ export default function Renewals() {
                             )}
                             {r.ownerPhone ? (
                               <button
-                                onClick={() => handleSms(r.id, r.ownerName, r.serialNumber, r.endDate, r.ownerPhone)}
+                                onClick={() => handleSms(r.id, r.ownerName, r.ownerPhone)}
                                 disabled={processing[`sms-${r.id}-${r.ownerPhone}`]}
                                 aria-label={`WhatsApp owner ${r.ownerName}`}
                                 className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 hover:bg-red-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
@@ -335,7 +335,7 @@ export default function Renewals() {
                           <div className="flex items-center gap-1.5">
                             {r.tenantEmail ? (
                               <button
-                                onClick={() => handleEmail(r.id, r.tenantName || 'Tenant', r.serialNumber, r.endDate, r.tenantEmail)}
+                                onClick={() => handleEmail(r.id, r.tenantName || 'Tenant', r.tenantEmail)}
                                 disabled={processing[`email-${r.id}-${r.tenantEmail}`]}
                                 aria-label={`Email tenant ${r.tenantName}`}
                                 className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
@@ -349,7 +349,7 @@ export default function Renewals() {
                             )}
                             {r.tenantPhone ? (
                               <button
-                                onClick={() => handleSms(r.id, r.tenantName || 'Tenant', r.serialNumber, r.endDate, r.tenantPhone)}
+                                onClick={() => handleSms(r.id, r.tenantName || 'Tenant', r.tenantPhone)}
                                 disabled={processing[`sms-${r.id}-${r.tenantPhone}`]}
                                 aria-label={`WhatsApp tenant ${r.tenantName}`}
                                 className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
@@ -466,7 +466,7 @@ export default function Renewals() {
                     <div className="flex items-center gap-2">
                       {r.ownerEmail ? (
                         <button
-                          onClick={() => handleEmail(r.id, r.ownerName, r.serialNumber, r.endDate, r.ownerEmail)}
+                          onClick={() => handleEmail(r.id, r.ownerName, r.ownerEmail)}
                           disabled={processing[`email-${r.id}-${r.ownerEmail}`]}
                           aria-label={`Email owner ${r.ownerName}`}
                           className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
@@ -480,7 +480,7 @@ export default function Renewals() {
                       )}
                       {r.ownerPhone ? (
                         <button
-                          onClick={() => handleSms(r.id, r.ownerName, r.serialNumber, r.endDate, r.ownerPhone)}
+                          onClick={() => handleSms(r.id, r.ownerName, r.ownerPhone)}
                           disabled={processing[`sms-${r.id}-${r.ownerPhone}`]}
                           aria-label={`WhatsApp owner ${r.ownerName}`}
                           className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
@@ -504,7 +504,7 @@ export default function Renewals() {
                     <div className="flex items-center gap-2">
                       {r.tenantEmail ? (
                         <button
-                          onClick={() => handleEmail(r.id, r.tenantName || 'Tenant', r.serialNumber, r.endDate, r.tenantEmail)}
+                          onClick={() => handleEmail(r.id, r.tenantName || 'Tenant', r.tenantEmail)}
                           disabled={processing[`email-${r.id}-${r.tenantEmail}`]}
                           aria-label={`Email tenant ${r.tenantName}`}
                           className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
@@ -518,7 +518,7 @@ export default function Renewals() {
                       )}
                       {r.tenantPhone ? (
                         <button
-                          onClick={() => handleSms(r.id, r.tenantName || 'Tenant', r.serialNumber, r.endDate, r.tenantPhone)}
+                          onClick={() => handleSms(r.id, r.tenantName || 'Tenant', r.tenantPhone)}
                           disabled={processing[`sms-${r.id}-${r.tenantPhone}`]}
                           aria-label={`WhatsApp tenant ${r.tenantName}`}
                           className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
