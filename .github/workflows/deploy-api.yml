@@ -48,7 +48,7 @@ jobs:
           service: ${{ env.SERVICE_NAME }}
           region: ${{ env.REGION }}
           image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
-          flags: '--allow-unauthenticated'
+          flags: '--allow-unauthenticated --max-instances=1'
           env_vars: |
             ASPNETCORE_ENVIRONMENT=Production
             ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING }}
