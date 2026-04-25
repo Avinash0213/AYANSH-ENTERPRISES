@@ -1,0 +1,62 @@
+name: Deploy API to Cloud Run
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'BMS.Api/**'
+      - '.github/workflows/deploy-api.yml'
+
+env:
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  REGION: us-central1
+  SERVICE_NAME: bms-api
+  REPOSITORY: bms-repo
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Container
+        run: |
+          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} ./BMS.Api
+          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          env_vars: |
+            ASPNETCORE_ENVIRONMENT=Production
+            ConnectionStrings__DefaultConnection=${{ secrets.DB_CONNECTION_STRING }}
+            JwtSettings__SecretKey=${{ secrets.JWT_SECRET }}
+            JwtSettings__Issuer=${{ secrets.JWT_ISSUER }}
+            JwtSettings__Audience=${{ secrets.JWT_AUDIENCE }}
+            Email__SmtpHost=${{ secrets.SMTP_HOST }}
+            Email__SmtpPort=${{ secrets.SMTP_PORT }}
+            Email__SmtpUser=${{ secrets.SMTP_USER }}
+            Email__SmtpPass=${{ secrets.SMTP_PASS }}
+            Email__FromEmail=${{ secrets.FROM_EMAIL }}
+            Twilio__AccountSid=${{ secrets.TWILIO_ACCOUNT_SID }}
+            Twilio__AuthToken=${{ secrets.TWILIO_AUTH_TOKEN }}
+            Twilio__MessagingServiceSid=${{ secrets.TWILIO_MESSAGING_SERVICE_SID }}
+            Twilio__FromNumber=${{ secrets.TWILIO_FROM_NUMBER }}
+            Resend__ApiKey=${{ secrets.RESEND_API_KEY }}
