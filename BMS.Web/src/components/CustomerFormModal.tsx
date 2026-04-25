@@ -130,7 +130,7 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
         currentId = data.id;
       }
 
-      if (form.receivedAmount && form.receivedAmount > 0 && currentId) {
+      if (form.receivedAmount && form.receivedAmount !== 0 && currentId) {
         await api.post('/payments', {
           customerId: currentId,
           receivedAmount: form.receivedAmount,

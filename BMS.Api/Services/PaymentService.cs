@@ -43,7 +43,7 @@ public class PaymentService
         return MapToResponse(payment);
     }
 
-    public async Task<PagedResponse<PaymentResponse>> GetAllPagedAsync(DateOnly? from = null, DateOnly? to = null, int page = 1, int pageSize = 10)
+    public async Task<PagedResponse<PaymentResponse>> GetAllPagedAsync(DateOnly? from = null, DateOnly? to = null, int page = 1, int pageSize = 10, string? source = null, string? search = null)
     {
         var query = _db.Payments
             .AsNoTracking()
@@ -55,6 +55,22 @@ public class PaymentService
             query = query.Where(p => p.PaymentDate >= from.Value);
         if (to.HasValue)
             query = query.Where(p => p.PaymentDate <= to.Value);
+
+        if (source == "customer")
+            query = query.Where(p => p.CustomerId != null);
+        else if (source == "visit")
+            query = query.Where(p => p.SataraVisitCode != null);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.ToLower();
+            query = query.Where(p => 
+                (p.Customer != null && p.Customer.OwnerName.ToLower().Contains(s)) ||
+                (p.Customer != null && p.Customer.SerialNumber.ToLower().Contains(s)) ||
+                (p.SataraVisitCode != null && p.SataraVisitCode.ToLower().Contains(s)) ||
+                (p.CollectorName != null && p.CollectorName.ToLower().Contains(s))
+            );
+        }
 
         var totalCount = await query.CountAsync();
         
@@ -73,7 +89,7 @@ public class PaymentService
         };
     }
 
-    public async Task<List<PaymentResponse>> GetAllAsync(DateOnly? from = null, DateOnly? to = null)
+    public async Task<List<PaymentResponse>> GetAllAsync(DateOnly? from = null, DateOnly? to = null, string? source = null)
     {
         // Keep for internal use if needed, but optimized
         var query = _db.Payments
@@ -86,6 +102,11 @@ public class PaymentService
             query = query.Where(p => p.PaymentDate >= from.Value);
         if (to.HasValue)
             query = query.Where(p => p.PaymentDate <= to.Value);
+
+        if (source == "customer")
+            query = query.Where(p => p.CustomerId != null);
+        else if (source == "visit")
+            query = query.Where(p => p.SataraVisitCode != null);
 
         var payments = await query.OrderByDescending(p => p.CreatedAt).ToListAsync();
 
@@ -138,7 +159,7 @@ public class PaymentService
         return payments.Select(MapToResponse).ToList();
     }
 
-    public async Task<PaymentSummary> GetSummaryAsync(DateOnly? from, DateOnly? to)
+    public async Task<PaymentSummary> GetSummaryAsync(DateOnly? from, DateOnly? to, string? source = null, string? search = null)
     {
         var query = _db.Payments.AsQueryable();
 
@@ -146,6 +167,22 @@ public class PaymentService
             query = query.Where(p => p.PaymentDate >= from.Value);
         if (to.HasValue)
             query = query.Where(p => p.PaymentDate <= to.Value);
+
+        if (source == "customer")
+            query = query.Where(p => p.CustomerId != null);
+        else if (source == "visit")
+            query = query.Where(p => p.SataraVisitCode != null);
+
+        if (!string.IsNullOrWhiteSpace(search))
+        {
+            var s = search.ToLower();
+            query = query.Where(p => 
+                (p.Customer != null && p.Customer.OwnerName.ToLower().Contains(s)) ||
+                (p.Customer != null && p.Customer.SerialNumber.ToLower().Contains(s)) ||
+                (p.SataraVisitCode != null && p.SataraVisitCode.ToLower().Contains(s)) ||
+                (p.CollectorName != null && p.CollectorName.ToLower().Contains(s))
+            );
+        }
 
         var stats = await query
             .AsNoTracking()

@@ -40,15 +40,17 @@ export default function Payments() {
   const [sourceFilter, setSourceFilter] = useState('all');
   const [dateFilters, setDateFilters] = useState(getDefaultDates());
 
-  const fetchData = async (from?: string, to?: string) => {
+  const fetchData = async (from?: string, to?: string, source?: string, search?: string) => {
     setLoading(true);
     try {
       const params = new URLSearchParams();
       if (from) params.append('from', from);
       if (to) params.append('to', to);
+      if (source && source !== 'all') params.append('source', source);
+      if (search) params.append('search', search);
 
       const [paymentsRes, summaryRes, custRes] = await Promise.all([
-        api.get(`/payments?${params.toString()}`),
+        api.get(`/payments?${params.toString()}&pageSize=100`), 
         api.get(`/payments/summary?${params.toString()}`),
         api.get('/customers')
       ]);
@@ -60,24 +62,13 @@ export default function Payments() {
   };
 
   useEffect(() => {
-    fetchData(dateFilters.from, dateFilters.to);
-  }, [dateFilters.from, dateFilters.to]);
+    const timer = setTimeout(() => {
+      fetchData(dateFilters.from, dateFilters.to, sourceFilter, searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [dateFilters.from, dateFilters.to, sourceFilter, searchTerm]);
 
-  const filteredPayments = (payments || []).filter(p => {
-    const matchesSearch = (p.customerOwner || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.customerSerial || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.sataraVisitCode || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (p.collectorName || '').toLowerCase().includes(searchTerm.toLowerCase());
-
-    let matchesSource = true;
-    if (sourceFilter === 'customer') {
-      matchesSource = p.customerId != null;
-    } else if (sourceFilter === 'visit') {
-      matchesSource = p.sataraVisitCode != null;
-    }
-
-    return matchesSearch && matchesSource;
-  });
+  const filteredPayments = payments || [];
 
   const computedProfit = form.receivedAmount - form.governmentCharges - form.employeeCommission;
 
@@ -201,10 +192,10 @@ export default function Payments() {
           </div>
           <div className="flex items-end">
             <button
-              onClick={() => fetchData(dateFilters.from, dateFilters.to)}
+              onClick={() => fetchData(dateFilters.from, dateFilters.to, sourceFilter, searchTerm)}
               className="btn-primary w-full flex items-center justify-center gap-2 active:scale-95"
             >
-              <Calendar className="w-4 h-4" /> Apply Filters
+              <Calendar className="w-4 h-4" /> Refresh Data
             </button>
           </div>
         </div>
@@ -390,19 +381,19 @@ export default function Payments() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Received amount *</label>
-              <input type="number" min="0" step="0.01" value={form.receivedAmount || ''}
+              <input type="number" step="0.01" value={form.receivedAmount || ''}
                 onChange={e => updateField('receivedAmount', parseFloat(e.target.value) || 0)}
                 className="input-field" placeholder="0.00" />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Govt charges</label>
-              <input type="number" min="0" step="0.01" value={form.governmentCharges || ''}
+              <input type="number" step="0.01" value={form.governmentCharges || ''}
                 onChange={e => updateField('governmentCharges', parseFloat(e.target.value) || 0)}
                 className="input-field" placeholder="0.00" />
             </div>
             <div>
               <label className="block text-xs font-medium text-muted-foreground mb-1">Visit Charges</label>
-              <input type="number" min="0" step="0.01" value={form.employeeCommission || ''}
+              <input type="number" step="0.01" value={form.employeeCommission || ''}
                 onChange={e => updateField('employeeCommission', parseFloat(e.target.value) || 0)}
                 className="input-field" placeholder="0.00" />
             </div>
@@ -448,7 +439,7 @@ export default function Payments() {
           </button>
           <button
             onClick={handleSave}
-            disabled={saving || form.customerId === 0 || form.receivedAmount <= 0}
+            disabled={saving || form.customerId === 0 || form.receivedAmount === 0}
             className="btn-primary flex items-center gap-2 disabled:opacity-50"
           >
             {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <DollarSign className="w-4 h-4" />}

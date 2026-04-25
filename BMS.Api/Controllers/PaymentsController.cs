@@ -24,10 +24,12 @@ public class PaymentsController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] DateOnly? from, 
         [FromQuery] DateOnly? to,
+        [FromQuery] string? source,
+        [FromQuery] string? search,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 10)
     {
-        var result = await _paymentService.GetAllPagedAsync(from, to, page, pageSize);
+        var result = await _paymentService.GetAllPagedAsync(from, to, page, pageSize, source, search);
         return Ok(result);
     }
 
@@ -49,9 +51,9 @@ public class PaymentsController : ControllerBase
 
     [HttpGet("summary")]
     [RequirePermission("PAYMENT_VIEW")]
-    public async Task<IActionResult> GetSummary([FromQuery] DateOnly? from, [FromQuery] DateOnly? to)
+    public async Task<IActionResult> GetSummary([FromQuery] DateOnly? from, [FromQuery] DateOnly? to, [FromQuery] string? source, [FromQuery] string? search)
     {
-        var summary = await _paymentService.GetSummaryAsync(from, to);
+        var summary = await _paymentService.GetSummaryAsync(from, to, source, search);
         return Ok(summary);
     }
 
