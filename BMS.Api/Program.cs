@@ -65,10 +65,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p => p.SetIsOriginAllowed(_ => true)
+    options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
                                       .AllowAnyMethod()
                                       .AllowAnyHeader()
-                                      .AllowCredentials()
                                       .WithExposedHeaders("Content-Disposition"));
 });
 
@@ -105,6 +104,7 @@ app.UseResponseCompression();
 app.UseAuthentication();
 app.UseAuthorization();
 
+app.MapGet("/", () => "BMS API is running");
 app.MapControllers();
 
 app.Run();

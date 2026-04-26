@@ -49,8 +49,8 @@ export default function Login() {
           transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
           className="absolute -bottom-[10%] -right-[10%] w-[60%] h-[60%] bg-red-900/10 rounded-full blur-[140px]"
         />
-        {/* Grain/Noise Texture */}
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.03] pointer-events-none brightness-150"></div>
+        {/* Ambient Overlay */}
+        <div className="absolute inset-0 bg-black/20 pointer-events-none"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)]"></div>
       </div>
 
