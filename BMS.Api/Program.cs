@@ -9,7 +9,7 @@ using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Trust Railway's edge proxy SSL termination
+// Trust Cloud Run's edge proxy SSL termination
 builder.Services.Configure<Microsoft.AspNetCore.Builder.ForwardedHeadersOptions>(options =>
 {
     options.ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor | Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto;
@@ -65,9 +65,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
+    options.AddPolicy("AllowAll", p => p.SetIsOriginAllowed(_ => true)
                                       .AllowAnyMethod()
                                       .AllowAnyHeader()
+                                      .AllowCredentials()
                                       .WithExposedHeaders("Content-Disposition"));
 });
 
@@ -97,10 +98,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseForwardedHeaders();
-app.UseResponseCompression();
+app.UseRouting();
 app.UseCors("AllowAll");
+app.UseResponseCompression();
+
 app.UseAuthentication();
 app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
