@@ -41,7 +41,7 @@ export default function Customers() {
   const [saving, setSaving] = useState(false);
   const { can } = useAuth();
 
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(initialSearch);
 
   const fetchCustomers = async (search?: string, type?: number | null, status?: number | null, date?: string, pageNum: number = 1) => {
     try {
@@ -266,20 +266,15 @@ export default function Customers() {
                           {c.serialNumber}
                         </span>
                         <div className="flex flex-col gap-1 items-start">
-                          <span className={cn(
-                            "inline-flex w-fit px-2 py-0.5 rounded-full text-xs font-medium",
-                            c.type === 0 ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400" :
-                              c.type === 1 ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400" :
-                                "bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400"
+                          <span className={cn("badge",
+                            c.type === 0 ? "badge-new" : c.type === 1 ? "badge-renewal" : "badge-cancel"
                           )}>
                             {c.typeName}
                           </span>
-                          <span className={cn(
-                            "inline-flex px-2 py-0.5 rounded-full text-xs font-medium",
-                            c.status === 0 ? "bg-blue-50 text-blue-700" :
-                              c.status === 1 ? "bg-amber-50 text-amber-700" :
-                                c.status === 2 ? "bg-purple-50 text-purple-700" :
-                                  "bg-emerald-50 text-emerald-700"
+                          <span className={cn("badge",
+                            c.status === 0 ? "badge-preparation" :
+                              c.status === 1 ? "badge-kyc" :
+                                c.status === 2 ? "badge-submitted" : "badge-completed"
                           )}>
                             {c.status === 0 ? 'Preparation' : c.status === 1 ? 'KYC' : c.status === 2 ? 'Submitted' : 'Completed'}
                           </span>
@@ -291,12 +286,12 @@ export default function Customers() {
                         <div className="flex items-center gap-2">
                           <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                           <span className="text-sm font-medium text-foreground">{c.ownerName}</span>
-                          <span className="px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-xs">Owner</span>
+                          <span className="badge-role">Owner</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <UserPlus className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                           <span className="text-sm text-muted-foreground">{c.tenantName}</span>
-                          <span className="px-1.5 py-0.5 bg-muted text-muted-foreground rounded text-xs">Tenant</span>
+                          <span className="badge-role">Tenant</span>
                         </div>
                       </div>
                     </td>
@@ -332,11 +327,8 @@ export default function Customers() {
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1.5">
                         {c.inquiryFrom && (
-                          <span className={cn(
-                            "inline-flex w-fit px-2 py-0.5 rounded-full text-xs font-medium",
-                            c.inquiryFrom === 'Agent'
-                              ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400"
-                              : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
+                          <span className={cn("badge w-fit",
+                            c.inquiryFrom === 'Agent' ? "badge-agent" : "badge-self"
                           )}>
                             {c.inquiryFrom}
                           </span>
@@ -407,20 +399,15 @@ export default function Customers() {
                         {c.serialNumber}
                       </p>
                       <div className="flex flex-wrap gap-1 mt-1">
-                        <span className={cn(
-                          "inline-flex px-2 py-0.5 rounded-full text-xs font-medium",
-                          c.type === 0 ? "bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400" :
-                            c.type === 1 ? "bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400" :
-                              "bg-rose-50 dark:bg-rose-900/20 text-rose-700 dark:text-rose-400"
+                        <span className={cn("badge",
+                          c.type === 0 ? "badge-new" : c.type === 1 ? "badge-renewal" : "badge-cancel"
                         )}>
                           {c.typeName}
                         </span>
-                        <span className={cn(
-                          "inline-flex px-2 py-0.5 rounded-full text-xs font-medium",
-                          c.status === 0 ? "bg-blue-50 text-blue-700" :
-                            c.status === 1 ? "bg-amber-50 text-amber-700" :
-                              c.status === 2 ? "bg-purple-50 text-purple-700" :
-                                "bg-emerald-50 text-emerald-700"
+                        <span className={cn("badge",
+                          c.status === 0 ? "badge-preparation" :
+                            c.status === 1 ? "badge-kyc" :
+                              c.status === 2 ? "badge-submitted" : "badge-completed"
                         )}>
                           {c.status === 0 ? 'Preparation' : c.status === 1 ? 'KYC' : c.status === 2 ? 'Submitted' : 'Completed'}
                         </span>
@@ -456,9 +443,8 @@ export default function Customers() {
                   {c.inquiryFrom && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-0.5">Inquiry From</p>
-                      <span className={cn(
-                        "inline-flex px-2 py-0.5 rounded-full text-xs font-medium",
-                        c.inquiryFrom === 'Agent' ? "bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-400" : "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400"
+                      <span className={cn("badge",
+                        c.inquiryFrom === 'Agent' ? "badge-agent" : "badge-self"
                       )}>{c.inquiryFrom}</span>
                     </div>
                   )}
@@ -561,19 +547,17 @@ export default function Customers() {
                 <Hash className="w-3.5 h-3.5 text-red-600" />
                 <span className="text-sm font-semibold text-foreground">{viewCustomer.serialNumber}</span>
               </div>
-              <div className={cn(
-                "px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5",
-                viewCustomer.type === 0 ? "bg-red-50 text-red-700 border-red-100" :
-                  viewCustomer.type === 1 ? "bg-amber-50 text-amber-700 border-amber-100" :
-                    "bg-muted text-muted-foreground border-border"
+              <span className={cn("badge",
+                viewCustomer.type === 0 ? "badge-new" :
+                  viewCustomer.type === 1 ? "badge-renewal" : "badge-cancel"
               )}>
-                <ShieldCheck className="w-3.5 h-3.5" />
+                <ShieldCheck className="w-3 h-3" />
                 {viewCustomer.typeName}
-              </div>
-              <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-lg text-xs font-medium flex items-center gap-1.5">
-                <Calendar className="w-3.5 h-3.5" />
+              </span>
+              <span className="badge badge-info">
+                <Calendar className="w-3 h-3" />
                 Expires: {fmtDate(viewCustomer.endDate)}
-              </div>
+              </span>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">

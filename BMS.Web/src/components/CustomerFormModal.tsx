@@ -26,7 +26,7 @@ const emptyForm = {
   receivedAmount: 0,
   governmentCharges: 0,
   employeeCommission: 0,
-  paymentDate: new Date().toISOString().split('T')[0],
+  paymentDate: '',
   paymentComment: '',
   collectorName: '',
   address: '',
@@ -109,8 +109,10 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
     try {
       const payload = {
         ...form,
+        ownerName: form.ownerName || null,
         ownerPhone: form.ownerPhone || null,
         ownerEmail: form.ownerEmail || null,
+        tenantName: form.tenantName || null,
         tenantPhone: form.tenantPhone || null,
         tenantEmail: form.tenantEmail || null,
         tokenNumber: form.tokenNumber || null,
@@ -177,18 +179,18 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5 bg-background p-4 rounded-xl border border-border">
               <div className="space-y-3">
-                <span className="inline-flex px-2 py-0.5 bg-red-50 text-red-600 text-xs font-medium rounded-full">Owner</span>
+                <span className="badge-role badge-new">Owner</span>
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Full name *</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Full name</label>
                   <input value={form.ownerName} onChange={e => updateField('ownerName', e.target.value)} className="input-field" placeholder="Owner Name" />
                 </div>
                 <input value={form.ownerPhone} onChange={e => updateField('ownerPhone', e.target.value)} className="input-field" placeholder="Phone" />
                 <input value={form.ownerEmail} onChange={e => updateField('ownerEmail', e.target.value)} className="input-field" placeholder="Email" />
               </div>
               <div className="space-y-3">
-                <span className="inline-flex px-2 py-0.5 bg-blue-50 text-blue-600 text-xs font-medium rounded-full">Tenant</span>
+                <span className="badge-role badge-preparation">Tenant</span>
                 <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Full name *</label>
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Full name</label>
                   <input value={form.tenantName} onChange={e => updateField('tenantName', e.target.value)} className="input-field" placeholder="Tenant Name" />
                 </div>
                 <input value={form.tenantPhone} onChange={e => updateField('tenantPhone', e.target.value)} className="input-field" placeholder="Phone" />
@@ -216,7 +218,12 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Status *</label>
                 <CustomSelect value={form.status} onChange={v => updateField('status', parseInt(String(v)))} 
-                  options={[{value: 0, label: 'Prep'}, {value: 1, label: 'KYC Pending'}, {value: 2, label: 'Sent'}, {value: 3, label: 'Done'}]} />
+                  options={[
+                    { value: 0, label: 'Preparation' }, 
+                    { value: 1, label: 'KYC Scheduled' }, 
+                    { value: 2, label: 'Submitted' }, 
+                    { value: 3, label: 'Completed' }
+                  ]} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Duration (M)</label>

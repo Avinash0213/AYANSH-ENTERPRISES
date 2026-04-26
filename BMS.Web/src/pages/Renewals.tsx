@@ -52,8 +52,8 @@ export default function Renewals() {
 
   const filtered = renewals.filter((r: any) => {
     const matchesFilter = filter === 'urgent' ? getUrgency(r.endDate) === 'urgent' : true;
-    const matchesSearch = r.ownerName.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         r.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (r.ownerName || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         (r.serialNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
     return matchesFilter && matchesSearch;
   });
 
@@ -246,10 +246,10 @@ export default function Renewals() {
                             ? "bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 border-rose-100 dark:border-rose-900/30"
                             : "bg-muted text-muted-foreground border-border group-hover:text-red-600"
                         )}>
-                          {r.ownerName.charAt(0)}
+                          {(r.ownerName || '?').charAt(0)}
                         </div>
                         <div>
-                          <p className="text-sm font-medium text-foreground">{r.ownerName}</p>
+                          <p className="text-sm font-medium text-foreground">{r.ownerName || 'Unknown Owner'}</p>
                           <button 
                             onClick={() => openRenewalModal(r.id)}
                             className="text-xs text-red-600 font-semibold hover:underline hover:text-red-700 transition-all focus:outline-none"
@@ -260,7 +260,9 @@ export default function Renewals() {
                       </div>
                     </td>
                     <td className="px-5 py-4">
-                      <span className="px-2 py-0.5 rounded-full bg-muted text-muted-foreground text-xs font-medium border border-border">
+                      <span className={cn("badge",
+                        r.type === 1 ? "badge-renewal" : "badge-new"
+                      )}>
                         {r.type === 1 ? 'Renewal' : 'New'}
                       </span>
                     </td>
@@ -276,10 +278,10 @@ export default function Renewals() {
                     </td>
                     <td className="px-5 py-4">
                       <span className={cn(
-                        "inline-flex items-center gap-1 text-xs font-medium px-2.5 py-1 rounded-full",
-                        urgency === 'urgent' ? "bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 animate-pulse" :
-                        urgency === 'near' ? "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400" :
-                        "bg-muted text-muted-foreground"
+                        "badge",
+                        urgency === 'urgent' ? "badge-urgent animate-pulse" :
+                        urgency === 'near' ? "badge-near" :
+                        "badge-neutral"
                       )}>
                         {urgency === 'urgent' && <AlertCircle className="w-3 h-3" />}
                         {days} days
@@ -424,10 +426,10 @@ export default function Renewals() {
                       "w-9 h-9 rounded-lg flex items-center justify-center font-medium text-sm border",
                       urgency === 'urgent' ? "bg-rose-50 text-rose-600 border-rose-100" : "bg-red-50 text-red-600 border-red-100"
                     )}>
-                      {r.ownerName.charAt(0)}
+                      {(r.ownerName || '?').charAt(0)}
                     </div>
                     <div>
-                      <p className="text-sm font-medium text-foreground">{r.ownerName}</p>
+                      <p className="text-sm font-medium text-foreground">{r.ownerName || 'Unknown Owner'}</p>
                       <button 
                         onClick={() => openRenewalModal(r.id)}
                         className="text-xs text-red-600 font-semibold hover:underline"
@@ -437,10 +439,10 @@ export default function Renewals() {
                     </div>
                   </div>
                   <span className={cn(
-                    "inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full",
-                    urgency === 'urgent' ? "bg-rose-50 text-rose-600" :
-                    urgency === 'near' ? "bg-amber-50 text-amber-600" :
-                    "bg-muted text-muted-foreground"
+                    "badge",
+                    urgency === 'urgent' ? "badge-urgent" :
+                    urgency === 'near' ? "badge-near" :
+                    "badge-neutral"
                   )}>
                     {days} days
                   </span>
@@ -451,7 +453,9 @@ export default function Renewals() {
                     <Calendar className="w-3.5 h-3.5" />
                     {fmtDate(r.endDate)}
                   </div>
-                  <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-muted text-muted-foreground border border-border">
+                  <span className={cn("badge",
+                    r.type === 1 ? "badge-renewal" : "badge-new"
+                  )}>
                     {r.type === 1 ? 'Renewal' : 'New'}
                   </span>
                 </div>

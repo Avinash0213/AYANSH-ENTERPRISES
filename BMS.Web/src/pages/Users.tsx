@@ -151,8 +151,8 @@ export default function UsersPage() {
                 </div>
               </div>
               <span className={cn(
-                "text-xs font-medium px-2 py-0.5 rounded-full",
-                u.roleId === 1 ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400" : "bg-muted text-muted-foreground border border-border"
+                "badge-role",
+                u.roleId === 1 ? "badge-admin" : ""
               )}>
                 {u.roleName}
               </span>

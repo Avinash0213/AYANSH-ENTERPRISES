@@ -18,14 +18,29 @@ public class RenewalService
     {
         var targetDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30));
 
-        // The queue dynamically computes renewals:
-        // Excludes 'Cancel' type.
-        // Requires EndDate to be within 30 days or already expired.
-        return await _db.Customers
+        var dueCustomers = await _db.Customers
             .Include(c => c.CreatedBy)
             .Where(c => !c.IsDeleted && 
                         c.Type != Domain.Enums.CustomerType.Cancel && 
                         c.EndDate <= targetDate)
+            .ToListAsync();
+
+        bool changed = false;
+        foreach (var c in dueCustomers)
+        {
+            if (c.Type == Domain.Enums.CustomerType.New)
+            {
+                c.Type = Domain.Enums.CustomerType.Renewal;
+                changed = true;
+            }
+        }
+
+        if (changed)
+        {
+            await _db.SaveChangesAsync();
+        }
+
+        return dueCustomers
             .OrderBy(c => c.EndDate)
             .Select(c => new CustomerResponse
             {
@@ -51,6 +66,6 @@ public class RenewalService
                 CreatedDate = c.CreatedDate,
                 CreatedByName = c.CreatedBy != null ? c.CreatedBy.Name : "System"
             })
-            .ToListAsync();
+            .ToList();
     }
 }

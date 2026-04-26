@@ -46,8 +46,8 @@ const NavItem = ({ to, icon: Icon, label, active, badge, onClick }: NavItemProps
     <span className="font-medium text-sm">{label}</span>
     {badge && (
       <span className={cn(
-        "ml-auto text-xs font-medium px-2 py-0.5 rounded-full",
-        active ? "bg-white/20 text-white" : "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400"
+        "badge ml-auto",
+        active ? "bg-white/20 text-white" : "badge-new"
       )}>
         {badge}
       </span>
@@ -109,7 +109,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <img src="/logo.svg" alt="Ayansh Enterprises" className="w-10 h-10 pointer-events-none drop-shadow-md" />
             <div>
               <span className="text-xl font-extrabold tracking-tight text-foreground uppercase">AYANSH</span>
-              <span className="block text-[8px] font-black text-red-600 tracking-[0.5em] uppercase -mt-1 ml-0.5 opacity-90">ENTERPRISES</span>
+              <span className="block text-[10px] font-black text-red-600 tracking-[0.5em] uppercase -mt-1 ml-0.5 opacity-90">ENTERPRISES</span>
             </div>
           </div>
           <button onClick={closeSidebar} aria-label="Close sidebar" className="lg:hidden p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-lg transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20">
@@ -199,7 +199,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <div className="absolute top-11 right-0 w-80 bg-card border border-border shadow-xl rounded-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200">
                   <div className="px-4 py-3 border-b border-border bg-muted/30 flex justify-between items-center">
                     <h2 className="text-sm font-semibold text-foreground">Notifications</h2>
-                    <span className="text-xs font-medium bg-rose-50 dark:bg-rose-900/20 text-rose-600 px-2 py-0.5 rounded-full">2 New</span>
+                    <span className="badge badge-new">2 New</span>
                   </div>
                   <div className="divide-y divide-border max-h-[300px] overflow-y-auto">
                     <div className="p-4 hover:bg-muted/50 cursor-pointer transition-colors" 

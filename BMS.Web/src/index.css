@@ -101,6 +101,115 @@
     background-position: right 1rem center;
     background-size: 1rem;
   }
+
+  /* ─── Unified Badge System ─── */
+  .badge {
+    @apply inline-flex items-center gap-1 text-[11px] font-semibold leading-none rounded-md whitespace-nowrap;
+    padding: 3px 7px;
+    letter-spacing: 0.01em;
+  }
+
+  /* Type badges */
+  .badge-new {
+    @apply bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400;
+  }
+  .badge-renewal {
+    @apply bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400;
+  }
+  .badge-cancel {
+    @apply bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400;
+  }
+
+  /* Status badges */
+  .badge-preparation {
+    @apply bg-blue-500/10 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400;
+  }
+  .badge-kyc {
+    @apply bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400;
+  }
+  .badge-submitted {
+    @apply bg-purple-500/10 text-purple-700 dark:bg-purple-500/15 dark:text-purple-400;
+  }
+  .badge-completed {
+    @apply bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400;
+  }
+
+  /* Role badges */
+  .badge-role {
+    @apply bg-muted text-muted-foreground dark:bg-muted/80;
+    padding: 2px 6px;
+    font-size: 10px;
+    font-weight: 500;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+  }
+
+  /* Inquiry badges */
+  .badge-agent {
+    @apply bg-blue-500/10 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400;
+  }
+  .badge-self {
+    @apply bg-emerald-500/10 text-emerald-700 dark:bg-emerald-500/15 dark:text-emerald-400;
+  }
+
+  /* Visit status badges */
+  .badge-pending {
+    @apply bg-amber-500/10 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400;
+  }
+  .badge-cancelled {
+    @apply bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400;
+  }
+
+  /* Urgency badges */
+  .badge-urgent {
+    @apply bg-rose-500/10 text-rose-600 dark:bg-rose-500/15 dark:text-rose-400;
+  }
+  .badge-near {
+    @apply bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400;
+  }
+
+  /* Utility badges */
+  .badge-info {
+    @apply bg-indigo-500/10 text-indigo-700 dark:bg-indigo-500/15 dark:text-indigo-400;
+  }
+  .badge-neutral {
+    @apply bg-muted text-muted-foreground;
+  }
+  .badge-admin {
+    @apply bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400;
+  }
+
+  /* ─── Data Table Styles ─── */
+  .data-table {
+    @apply w-full text-left text-sm;
+  }
+  .data-table thead {
+    @apply border-b border-border;
+  }
+  .data-table thead th {
+    @apply px-4 py-2.5 text-[11px] font-semibold text-muted-foreground uppercase tracking-wider;
+  }
+  .data-table tbody tr {
+    @apply border-b border-border/60 transition-colors duration-150;
+  }
+  .data-table tbody tr:last-child {
+    @apply border-b-0;
+  }
+  .data-table tbody tr:hover {
+    @apply bg-muted/40;
+  }
+  .data-table tbody td {
+    @apply px-4 py-3 align-top;
+  }
+
+  /* ─── Toolbar ─── */
+  .toolbar {
+    @apply px-4 py-3 border-b border-border flex flex-col md:flex-row gap-3 md:items-center justify-between;
+  }
+  .toolbar-search {
+    @apply w-full pl-9 pr-3 py-2 bg-background border border-border rounded-lg text-sm text-foreground outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-400 transition placeholder:text-muted-foreground;
+  }
 }
 
 /* Custom Professional Scrollbar System */

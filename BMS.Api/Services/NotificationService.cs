@@ -242,8 +242,8 @@ Contact: 7030993233 / 8806688500";
                 <p style=""margin: 0 0 4px 0;"">Samarth Complex, Shop No. 2, Vidhate Wasti Road,<br/>Aundh-Baner, Pune 411045</p>
                 <p style=""margin: 0 0 12px 0;"">&#128222; 7030993233 / 8806688500</p>
                 <hr style=""border: 0; border-top: 1px solid #eee; margin: 10px 0;"" />
-                <p style=""font-size: 0.8em; color: #999; margin: 0;"">This is an automated message from the Business Management System.<br/>
-                Please do not reply directly to this email.</p>
+                <p style=""font-size: 0.8em; color: #999; margin: 0;"">This is an automated message from the Ayansh Enterprises team.<br/>
+                For any query revert to this mail or the phone number provided in the mail.</p>
             </div>
         </div>";
     }

@@ -277,11 +277,9 @@ export default function SataraVisits() {
                           <Calendar className="w-3.5 h-3.5" />
                           {fmtDate(v.scheduledTime)} {new Date(v.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
-                        <span className={cn(
-                          "inline-flex px-2 py-0.5 rounded-full text-xs font-medium",
-                          v.status === 'Pending' ? "bg-amber-50 text-amber-700" :
-                            v.status === 'Completed' ? "bg-emerald-50 text-emerald-700" :
-                              "bg-rose-50 text-rose-700"
+                        <span className={cn("badge",
+                          v.status === 'Pending' ? "badge-pending" :
+                            v.status === 'Completed' ? "badge-completed" : "badge-cancelled"
                         )}>
                           {v.status}
                         </span>
@@ -314,10 +312,9 @@ export default function SataraVisits() {
                     #{v.visitCode}
                   </p>
                   <p className="text-sm font-medium text-foreground mt-0.5">{v.personName}</p>
-                  <span className={cn(
-                    "inline-flex px-2 py-0.5 mt-1 rounded-full text-xs font-medium",
-                    v.status === 'Pending' ? "bg-amber-50 text-amber-700" :
-                      v.status === 'Completed' ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                  <span className={cn("badge",
+                    v.status === 'Pending' ? "badge-pending" :
+                      v.status === 'Completed' ? "badge-completed" : "badge-cancelled"
                   )}>{v.status}</span>
                 </div>
                 <button onClick={() => openEdit(v)} className="p-2 text-red-600 bg-red-50 rounded-lg active:scale-90 transition">
@@ -534,15 +531,13 @@ export default function SataraVisits() {
                 <Hash className="w-3.5 h-3.5 text-red-600" />
                 <span className="text-sm font-semibold text-foreground">{viewVisit.visitCode}</span>
               </div>
-              <div className={cn(
-                "px-3 py-1.5 rounded-lg border text-xs font-medium flex items-center gap-1.5",
-                viewVisit.status === 'Pending' ? "bg-amber-50 text-amber-700 border-amber-100" :
-                  viewVisit.status === 'Completed' ? "bg-emerald-50 text-emerald-700 border-emerald-100" :
-                    "bg-rose-50 text-rose-700 border-rose-100"
+              <div className={cn("badge",
+                viewVisit.status === 'Pending' ? "badge-pending" :
+                  viewVisit.status === 'Completed' ? "badge-completed" : "badge-cancelled"
               )}>
                 {viewVisit.status}
               </div>
-              <div className="px-3 py-1.5 bg-indigo-50 border border-indigo-100 text-indigo-700 rounded-lg text-xs font-medium flex items-center gap-1.5">
+              <div className="badge badge-info">
                 <Calendar className="w-3.5 h-3.5" />
                 Sch: {fmtDate(viewVisit.scheduledTime)}
               </div>

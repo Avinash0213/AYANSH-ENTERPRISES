@@ -274,11 +274,10 @@ export default function Reports() {
                   <td className="px-5 py-4 text-sm text-muted-foreground">{r.ownerName}</td>
                   <td className="px-5 py-4 text-sm text-muted-foreground">{r.tenantName}</td>
                   <td className="px-5 py-4">
-                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                      r.type === 'New' ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
-                      r.type === 'Renewal' ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400' :
-                      'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
-                    }`}>{r.type}</span>
+                    <span className={cn("badge",
+                      r.type === 'New' ? "badge-new" :
+                      r.type === 'Renewal' ? "badge-renewal" : "badge-cancel"
+                    )}>{r.type}</span>
                   </td>
                   <td className="px-5 py-4 text-sm text-muted-foreground">{fmtDate(r.startDate)}</td>
                   <td className="px-5 py-4 text-sm text-muted-foreground">{fmtDate(r.endDate)}</td>
@@ -310,11 +309,9 @@ export default function Reports() {
             <div key={r.id} className="p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm font-medium text-foreground">{r.serialNumber}</span>
-                <span className={cn(
-                  "text-xs font-medium px-2 py-0.5 rounded-full",
-                  r.type === 'New' ? "bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400" :
-                  r.type === 'Renewal' ? "bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400" :
-                  "bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400"
+                <span className={cn("badge",
+                  r.type === 'New' ? "badge-new" :
+                  r.type === 'Renewal' ? "badge-renewal" : "badge-cancel"
                 )}>{r.type}</span>
               </div>
               

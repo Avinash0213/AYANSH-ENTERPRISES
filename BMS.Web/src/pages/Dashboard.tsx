@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Users, Clock, ArrowUpRight, ShieldCheck, FileText } from 'lucide-react';
 import { api } from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { cn } from '../lib/utils';
 import { Link } from 'react-router-dom';
 import type { Customer } from '../types';
 
@@ -71,9 +72,9 @@ export default function Dashboard() {
       </motion.div>
 
       <motion.div variants={item} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        <StatCard title="Total Customers" value={stats.total} icon={Users} color="bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400" />
-        <StatCard title="Active Customers" value={stats.active} icon={ShieldCheck} color="bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400" />
-        <StatCard title="Renewal Pipeline" value={stats.renewals} icon={Clock} color="bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400" />
+        <StatCard title="Total Customers" value={stats.total} icon={Users} color="bg-red-500/10 text-red-600 dark:bg-red-500/15 dark:text-red-400" />
+        <StatCard title="Active Customers" value={stats.active} icon={ShieldCheck} color="bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400" />
+        <StatCard title="Renewal Pipeline" value={stats.renewals} icon={Clock} color="bg-amber-500/10 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400" />
       </motion.div>
 
       <motion.div variants={item} className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -90,18 +91,16 @@ export default function Dashboard() {
               <div key={c.id} className="flex items-center justify-between px-5 py-3.5 hover:bg-muted/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center text-sm font-medium text-muted-foreground border border-border">
-                    {c.ownerName.charAt(0)}
+                    {(c.ownerName || '?').charAt(0)}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-foreground">{c.ownerName}</p>
+                    <p className="text-sm font-medium text-foreground">{c.ownerName || 'Unknown Owner'}</p>
                     <p className="text-xs text-muted-foreground">{c.serialNumber}</p>
                   </div>
                 </div>
-                <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                  c.type === 0 ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400' :
-                  c.type === 1 ? 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400' :
-                  'bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400'
-                }`}>
+                <span className={cn("badge",
+                  c.type === 0 ? "badge-new" : c.type === 1 ? "badge-renewal" : "badge-cancel"
+                )}>
                   {c.typeName}
                 </span>
               </div>

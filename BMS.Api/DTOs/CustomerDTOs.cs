@@ -4,10 +4,10 @@ using BMS.Api.Domain.Enums;
 
 public class CreateCustomerRequest
 {
-    public string OwnerName { get; set; } = null!;
+    public string? OwnerName { get; set; }
     public string? OwnerPhone { get; set; }
     public string? OwnerEmail { get; set; }
-    public string TenantName { get; set; } = null!;
+    public string? TenantName { get; set; }
     public string? TenantPhone { get; set; }
     public string? TenantEmail { get; set; }
     public string? TokenNumber { get; set; }
@@ -26,10 +26,10 @@ public class CreateCustomerRequest
 
 public class UpdateCustomerRequest
 {
-    public string OwnerName { get; set; } = null!;
+    public string? OwnerName { get; set; }
     public string? OwnerPhone { get; set; }
     public string? OwnerEmail { get; set; }
-    public string TenantName { get; set; } = null!;
+    public string? TenantName { get; set; }
     public string? TenantPhone { get; set; }
     public string? TenantEmail { get; set; }
     public string? TokenNumber { get; set; }
@@ -50,10 +50,10 @@ public class CustomerResponse
 {
     public int Id { get; set; }
     public string SerialNumber { get; set; } = null!;
-    public string OwnerName { get; set; } = null!;
+    public string? OwnerName { get; set; }
     public string? OwnerPhone { get; set; }
     public string? OwnerEmail { get; set; }
-    public string TenantName { get; set; } = null!;
+    public string? TenantName { get; set; }
     public string? TenantPhone { get; set; }
     public string? TenantEmail { get; set; }
     public string? TokenNumber { get; set; }
