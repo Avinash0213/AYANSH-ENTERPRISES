@@ -1,0 +1,14 @@
+**/.git
+**/.gitignore
+**/.vscode
+**/bin
+**/obj
+**/out
+**/publish
+Dockerfile
+.dockerignore
+node_modules
+npm-debug.log
+README.md
+LICENSE
+.github

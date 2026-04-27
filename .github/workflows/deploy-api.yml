@@ -39,8 +39,10 @@ jobs:
 
       - name: Build and Push Container
         run: |
-          docker build -t ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }} ./BMS.Api
-          docker push ${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}:${{ github.sha }}
+          IMAGE_TAG=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}
+          docker build -t $IMAGE_TAG:${{ github.sha }} -t $IMAGE_TAG:latest ./BMS.Api
+          docker push $IMAGE_TAG:${{ github.sha }}
+          docker push $IMAGE_TAG:latest
 
       - name: Deploy to Cloud Run
         uses: google-github-actions/deploy-cloudrun@v2
@@ -65,3 +67,15 @@ jobs:
             Twilio__MessagingServiceSid=${{ secrets.TWILIO_MESSAGING_SERVICE_SID }}
             Twilio__FromNumber=${{ secrets.TWILIO_FROM_NUMBER }}
             Resend__ApiKey=${{ secrets.RESEND_API_KEY }}
+
+      - name: Cleanup Old Images
+        run: |
+          IMAGE_PATH=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}
+          # List all images by update time, skip the 2 most recent, and delete the rest
+          gcloud artifacts docker images list $IMAGE_PATH \
+            --sort-by=~UPDATE_TIME \
+            --format='value(package, digest)' \
+            | tail -n +3 \
+            | while read pkg digest; do 
+                gcloud artifacts docker images delete "$pkg@$digest" --quiet --delete-tags
+              done
