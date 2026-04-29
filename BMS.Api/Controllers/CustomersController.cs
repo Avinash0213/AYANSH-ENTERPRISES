@@ -115,6 +115,7 @@ public class CustomersController : ControllerBase
                 Status = (int)c.Status,
                 StatusName = c.Status.ToString(),
                 StartDate = c.StartDate,
+                InitiatedDate = c.InitiatedDate,
                 Period = c.Period,
                 EndDate = c.EndDate,
                 Rent = c.Rent,
@@ -165,6 +166,7 @@ public class CustomersController : ControllerBase
             Status = (int)c.Status,
             StatusName = c.Status.ToString(),
             StartDate = c.StartDate,
+            InitiatedDate = c.InitiatedDate,
             Period = c.Period,
             EndDate = c.EndDate,
             Rent = c.Rent,
@@ -197,6 +199,7 @@ public class CustomersController : ControllerBase
             Type = req.Type,
             Status = req.Status,
             StartDate = req.StartDate,
+            InitiatedDate = req.InitiatedDate,
             Period = req.Period,
             Rent = req.Rent,
             Deposit = req.Deposit,
@@ -223,6 +226,7 @@ public class CustomersController : ControllerBase
             Status = (int)created.Status,
             StatusName = created.Status.ToString(),
             StartDate = created.StartDate,
+            InitiatedDate = created.InitiatedDate,
             Period = created.Period,
             EndDate = created.EndDate,
             Rent = created.Rent,
@@ -255,6 +259,7 @@ public class CustomersController : ControllerBase
         var oldStatus = customer.Status;
         customer.Status = req.Status;
         customer.StartDate = req.StartDate;
+        customer.InitiatedDate = req.InitiatedDate;
         customer.Period = req.Period;
         customer.Rent = req.Rent;
         customer.Deposit = req.Deposit;
@@ -295,6 +300,7 @@ public class CustomersController : ControllerBase
             Status = (int)customer.Status,
             StatusName = customer.Status.ToString(),
             StartDate = customer.StartDate,
+            InitiatedDate = customer.InitiatedDate,
             Period = customer.Period,
             EndDate = customer.EndDate,
             Rent = customer.Rent,

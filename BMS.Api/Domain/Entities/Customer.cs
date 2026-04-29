@@ -19,6 +19,7 @@ public class Customer
     public CustomerStatus Status { get; set; }
 
     public DateOnly? StartDate { get; set; }
+    public DateOnly? InitiatedDate { get; set; }
     public int? Period { get; set; } // in months
     public DateOnly? EndDate { get; set; }
 

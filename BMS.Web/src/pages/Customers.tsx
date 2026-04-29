@@ -302,6 +302,12 @@ export default function Customers() {
                     </td>
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1">
+                        {c.initiatedDate && (
+                          <div className="flex items-center gap-2 text-[10px] text-blue-600 dark:text-blue-400 font-medium">
+                            <span className="w-3.5 h-3.5 rounded bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-[8px] font-bold shrink-0">I</span>
+                            {fmtDate(c.initiatedDate)}
+                          </div>
+                        )}
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <span className="w-3.5 h-3.5 rounded bg-muted flex items-center justify-center text-[8px] font-bold text-muted-foreground shrink-0">S</span>
                           {c.startDate ? fmtDate(c.startDate) : '—'}
@@ -457,7 +463,13 @@ export default function Customers() {
                 </div>
 
                 <div className="pt-2 border-t border-border flex flex-col gap-1.5">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    {c.initiatedDate && (
+                      <div className="flex items-center gap-2 text-xs text-blue-600 dark:text-blue-400">
+                        <Calendar className="w-3 h-3" />
+                        <span>Init: {fmtDate(c.initiatedDate)}</span>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 text-xs text-muted-foreground">
                       <Calendar className="w-3 h-3" />
                       <span>Start: {c.startDate ? fmtDate(c.startDate) : '—'}</span>
@@ -653,6 +665,15 @@ export default function Customers() {
                     <Clock className="w-3.5 h-3.5 text-muted-foreground" />
                   </h3>
                   <div className="space-y-3 pt-1">
+                    {viewCustomer.initiatedDate && (
+                      <div className="flex items-start gap-3">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                        <div>
+                          <p className="text-xs font-medium text-muted-foreground">Initiated</p>
+                          <p className="text-sm text-foreground">{fmtDate(viewCustomer.initiatedDate)}</p>
+                        </div>
+                      </div>
+                    )}
                     <div className="flex items-start gap-3">
                       <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
                       <div>

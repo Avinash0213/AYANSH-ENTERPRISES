@@ -17,6 +17,7 @@ public class CreateCustomerRequest
     public CustomerType Type { get; set; }
     public CustomerStatus Status { get; set; }
     public DateOnly? StartDate { get; set; }
+    public DateOnly? InitiatedDate { get; set; }
     public int? Period { get; set; }
     public decimal Rent { get; set; }
     public decimal Deposit { get; set; }
@@ -39,6 +40,7 @@ public class UpdateCustomerRequest
     public CustomerType Type { get; set; }
     public CustomerStatus Status { get; set; }
     public DateOnly? StartDate { get; set; }
+    public DateOnly? InitiatedDate { get; set; }
     public int? Period { get; set; }
     public decimal Rent { get; set; }
     public decimal Deposit { get; set; }
@@ -65,6 +67,7 @@ public class CustomerResponse
     public int Status { get; set; }
     public string StatusName { get; set; } = null!;
     public DateOnly? StartDate { get; set; }
+    public DateOnly? InitiatedDate { get; set; }
     public int? Period { get; set; }
     public decimal Rent { get; set; }
     public decimal Deposit { get; set; }

@@ -22,6 +22,7 @@ const emptyForm = {
   tenantName: '', tenantPhone: '', tenantEmail: '',
   tokenNumber: '', inquiryFrom: '', comment: '', type: 0, status: 0,
   startDate: new Date().toISOString().split('T')[0],
+  initiatedDate: '',
   period: 12,
   receivedAmount: 0,
   governmentCharges: 0,
@@ -68,6 +69,7 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
         type: initialType ?? data.type,
         status: data.status,
         startDate: data.startDate || '',
+        initiatedDate: data.initiatedDate || '',
         period: data.period || 11,
         rent: data.rent || 0,
         deposit: data.deposit || 0,
@@ -119,6 +121,7 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
         inquiryFrom: form.inquiryFrom || null,
         comment: form.comment || null,
         address: form.address || null,
+        initiatedDate: form.initiatedDate || null,
         rent: form.rent,
         deposit: form.deposit,
         quotedAmount: form.quotedAmount
@@ -232,6 +235,10 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Start Date *</label>
                 <DateInput value={form.startDate} onChange={v => updateField('startDate', v)} />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Initiated Date</label>
+                <DateInput value={form.initiatedDate} onChange={v => updateField('initiatedDate', v)} />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1 text-red-600">Calculated Expiry</label>

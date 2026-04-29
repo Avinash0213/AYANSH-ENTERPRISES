@@ -16,6 +16,7 @@ export interface Customer {
   status: number;
   statusName: string;
   startDate?: string;
+  initiatedDate?: string;
   period?: number;
   renewalDate?: string;
   endDate: string;
@@ -41,6 +42,7 @@ export interface CreateCustomerRequest {
   type: number;
   status: number;
   startDate?: string;
+  initiatedDate?: string;
   period?: number | '';
   renewalDate?: string;
   // Optional payment fields
