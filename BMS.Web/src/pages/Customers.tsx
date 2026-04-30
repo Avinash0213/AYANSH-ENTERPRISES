@@ -244,7 +244,7 @@ export default function Customers() {
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Contact</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Address</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Start &amp; End</th>
-                <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Created Date</th>
+                <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground whitespace-normal max-w-[100px]">Created Date &amp; Token</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Inquiry &amp; Notes</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground text-right">Actions</th>
               </tr>
