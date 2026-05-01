@@ -197,7 +197,7 @@ export default function Reports() {
               options={[
                 { value: 'all', label: 'Combined' },
                 { value: 'customer', label: 'Customer' },
-                { value: 'visit', label: 'Client Visit' },
+                { value: 'visit', label: 'Satara Visit' },
               ]}
             />
           </div>

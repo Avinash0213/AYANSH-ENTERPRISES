@@ -214,7 +214,7 @@ public class ReportService
             dateCell.Style.DateFormat.Format = "dd/MM/yyyy";
 
             ws.Cell(row, 2).SetValue(p.Customer?.SerialNumber ?? p.SataraVisitCode ?? "N/A");
-            ws.Cell(row, 3).SetValue(p.Customer?.OwnerName ?? "Client Visit");
+            ws.Cell(row, 3).SetValue(p.Customer?.OwnerName ?? "Satara Visit");
             
             var grossCell = ws.Cell(row, 4);
             grossCell.SetValue(p.ReceivedAmount);
