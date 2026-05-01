@@ -286,12 +286,12 @@ export default function Customers() {
                         <div className="flex items-center gap-2">
                           <Building2 className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                           <span className="text-sm font-medium text-foreground">{c.ownerName}</span>
-                          <span className="badge-role">Owner</span>
+                          <span className="badge-role">O</span>
                         </div>
                         <div className="flex items-center gap-2">
                           <UserPlus className="w-3.5 h-3.5 text-muted-foreground shrink-0" />
                           <span className="text-sm text-muted-foreground">{c.tenantName}</span>
-                          <span className="badge-role">Tenant</span>
+                          <span className="badge-role">T</span>
                         </div>
                       </div>
                     </td>
@@ -435,11 +435,11 @@ export default function Customers() {
 
                 <div className="grid grid-cols-2 gap-3 bg-muted/30 p-3 rounded-xl border border-border">
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-0.5">Owner</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-0.5">O</p>
                     <p className="text-sm font-medium text-foreground line-clamp-1">{c.ownerName}</p>
                   </div>
                   <div>
-                    <p className="text-xs font-medium text-muted-foreground mb-0.5">Tenant</p>
+                    <p className="text-xs font-medium text-muted-foreground mb-0.5">T</p>
                     <p className="text-sm font-medium text-foreground line-clamp-1">{c.tenantName}</p>
                   </div>
                   <div className="col-span-2">
