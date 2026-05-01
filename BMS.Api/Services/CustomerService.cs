@@ -33,6 +33,7 @@ public class CustomerService
         req.CreatedById = createdById;
         req.CreatedDate = DateTime.UtcNow;
 
+
         // One-way Calendar Sync
         var (startId, endId) = await _calendar.CreateAgreementEventsAsync(req);
         req.CalendarStartEventId = startId;
@@ -40,9 +41,6 @@ public class CustomerService
 
         await _db.Customers.AddAsync(req);
         await _db.SaveChangesAsync();
-
-        // Welcome Notification Mock
-        await _notifier.SendEmailAsync(req, "Agreement Started", "Your new rental agreement has been initiated.");
 
         await _db.Entry(req).Reference(c => c.CreatedBy).LoadAsync();
 
