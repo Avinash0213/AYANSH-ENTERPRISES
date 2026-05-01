@@ -249,9 +249,10 @@ public class ReportService
         // Add Summary Row
         if (payments.Any())
         {
-            var totalRow = row + 1;
+            var totalRow = row; // Put immediately after data
             ws.Cell(totalRow, 3).Value = "TOTALS:";
             ws.Cell(totalRow, 3).Style.Font.Bold = true;
+            ws.Cell(totalRow, 3).Style.Border.TopBorder = XLBorderStyleValues.Double;
             
             ws.Cell(totalRow, 4).FormulaA1 = $"SUM(D2:D{row - 1})";
             ws.Cell(totalRow, 5).FormulaA1 = $"SUM(E2:E{row - 1})";
@@ -261,7 +262,7 @@ public class ReportService
             var summaryRange = ws.Range(totalRow, 4, totalRow, 7);
             summaryRange.Style.Font.Bold = true;
             summaryRange.Style.Border.TopBorder = XLBorderStyleValues.Double;
-            summaryRange.Style.NumberFormat.Format = "#,##0.00";
+            summaryRange.Style.NumberFormat.Format = "₹ #,##0.00";
         }
 
         ws.Columns().AdjustToContents();
