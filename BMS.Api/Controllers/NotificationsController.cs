@@ -27,7 +27,11 @@ public class NotificationsController : ControllerBase
         var customer = await _db.Customers.FindAsync(customerId);
         if (customer == null) return NotFound();
 
-        await _notificationService.SendEmailAsync(customer, request.Subject, request.Body, request.TargetEmail);
+        var result = await _notificationService.SendEmailAsync(customer, request.Subject, request.Body, request.TargetEmail);
+        if (!result.success)
+        {
+            return BadRequest(new { message = result.error ?? "Failed to send email" });
+        }
         return Ok(new { message = "Email sent successfully" });
     }
 
@@ -47,7 +51,11 @@ public class NotificationsController : ControllerBase
         var customer = await _db.Customers.FindAsync(customerId);
         if (customer == null) return NotFound();
 
-        await _notificationService.SendRenewalNotificationAsync(customer, request.TargetEmail, request.TargetPhone);
+        var result = await _notificationService.SendRenewalNotificationAsync(customer, request.TargetEmail, request.TargetPhone);
+        if (!result.success)
+        {
+            return BadRequest(new { message = result.error ?? "Failed to send renewal notification" });
+        }
         return Ok(new { message = "Renewal notification sent successfully" });
     }
 }

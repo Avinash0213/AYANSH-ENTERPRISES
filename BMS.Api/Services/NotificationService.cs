@@ -21,7 +21,7 @@ public class NotificationService
         _logger = logger;
     }
 
-    public async Task SendEmailAsync(Customer customer, string subject, string body, string? targetEmail = null)
+    public async Task<(bool success, string? error)> SendEmailAsync(Customer customer, string subject, string body, string? targetEmail = null)
     {
         // 1. Check cooldown (dont send if sent in last 24h)
         var lastSent = _db.NotificationLogs
@@ -32,21 +32,23 @@ public class NotificationService
         if (lastSent != null && (DateTime.UtcNow - lastSent.SentAt).TotalHours < 24)
         {
             _logger.LogInformation($"Skipped sending email to {customer.SerialNumber} (Cooldown active)");
-            // return; // Keeping it commented for now as per user's testing phase, but added target check
+            // return true; // Keeping it commented for now as per user's testing phase, but added target check
         }
 
         // 2. Send Emails
         bool ownerSent = false;
         bool tenantSent = false;
+        string? lastError = null;
 
         // If targetEmail is provided, send ONLY to that target
         if (!string.IsNullOrEmpty(targetEmail))
         {
             string personalizedName = targetEmail == customer.OwnerEmail ? customer.OwnerName ?? "Customer" : customer.TenantName ?? "Customer";
             string personalizedBody = FormatEmailBody(body.Replace("{{Name}}", personalizedName));
-            await _emailService.SendEmailAsync(targetEmail, subject, personalizedBody);
-            ownerSent = targetEmail == customer.OwnerEmail;
-            tenantSent = targetEmail == customer.TenantEmail;
+            var result = await _emailService.SendEmailAsync(targetEmail, subject, personalizedBody);
+            ownerSent = result.success && targetEmail == customer.OwnerEmail;
+            tenantSent = result.success && targetEmail == customer.TenantEmail;
+            lastError = result.error;
         }
         else
         {
@@ -55,7 +57,9 @@ public class NotificationService
             {
                 string ownerName = customer.OwnerName ?? "Customer";
                 string ownerBody = FormatEmailBody(body.Replace("{{Name}}", ownerName));
-                ownerSent = await _emailService.SendEmailAsync(customer.OwnerEmail, subject, ownerBody);
+                var result = await _emailService.SendEmailAsync(customer.OwnerEmail, subject, ownerBody);
+                ownerSent = result.success;
+                lastError = result.error;
             }
 
             if (!string.IsNullOrEmpty(customer.TenantEmail) && 
@@ -63,14 +67,16 @@ public class NotificationService
             {
                 string tenantName = customer.TenantName ?? "Customer";
                 string tenantBody = FormatEmailBody(body.Replace("{{Name}}", tenantName));
-                tenantSent = await _emailService.SendEmailAsync(customer.TenantEmail, subject, tenantBody);
+                var result = await _emailService.SendEmailAsync(customer.TenantEmail, subject, tenantBody);
+                tenantSent = result.success;
+                if (!tenantSent) lastError = result.error;
             }
         }
 
         if (!ownerSent && !tenantSent && string.IsNullOrEmpty(targetEmail))
         {
-            _logger.LogWarning($"Failed to send emails for {customer.SerialNumber} (No valid emails or service error)");
-            return;
+            _logger.LogWarning($"Failed to send emails for {customer.SerialNumber}: {lastError ?? "No valid emails"}");
+            return (false, lastError ?? "No valid emails or service error");
         }
         
         // 3. Log it
@@ -82,9 +88,10 @@ public class NotificationService
             SentAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync();
+        return (true, null);
     }
 
-    public async Task SendSmsAsync(Customer customer, string message, string? targetPhone = null)
+    public async Task<bool> SendSmsAsync(Customer customer, string message, string? targetPhone = null)
     {
         // 1. Check cooldown (24h)
         var lastSent = _db.NotificationLogs
@@ -128,7 +135,7 @@ public class NotificationService
         if (!ownerSent && !tenantSent && string.IsNullOrEmpty(targetPhone))
         {
             _logger.LogWarning($"Failed to send SMS for {customer.SerialNumber} (No valid phone numbers or service error)");
-            return;
+            return false;
         }
 
         // 3. Log it
@@ -140,6 +147,7 @@ public class NotificationService
             SentAt = DateTime.UtcNow
         });
         await _db.SaveChangesAsync();
+        return true;
     }
 
     public async Task SendCompletionNotificationAsync(Customer customer)
@@ -172,7 +180,7 @@ Contact: 7030993233 / 8806688500";
         await SendSmsAsync(customer, smsMessage);
     }
 
-    public async Task SendRenewalNotificationAsync(Customer customer, string? targetEmail = null, string? targetPhone = null)
+    public async Task<(bool success, string? error)> SendRenewalNotificationAsync(Customer customer, string? targetEmail = null, string? targetPhone = null)
     {
         string subject = "Upcoming Renewal of Your Rental Agreement";
         string endDateStr = customer.EndDate?.ToString("dd/MM/yyyy") ?? "[Date]";
@@ -205,21 +213,28 @@ Contact: 7030993233 / 8806688500";
         // If both are null, it's a "Notify All" request
         if (string.IsNullOrEmpty(targetEmail) && string.IsNullOrEmpty(targetPhone))
         {
-            await SendEmailAsync(customer, subject, emailBody);
-            await SendSmsAsync(customer, smsMessage);
+            var emailResult = await SendEmailAsync(customer, subject, emailBody);
+            var smsResult = await SendSmsAsync(customer, smsMessage);
+            return (emailResult.success || smsResult, emailResult.error);
         }
         else
         {
+            bool success = false;
+            string? error = null;
             // Targeted send: only send the medium if a target was provided
             if (!string.IsNullOrEmpty(targetEmail))
             {
-                await SendEmailAsync(customer, subject, emailBody, targetEmail);
+                var result = await SendEmailAsync(customer, subject, emailBody, targetEmail);
+                success = result.success;
+                error = result.error;
             }
             
             if (!string.IsNullOrEmpty(targetPhone))
             {
-                await SendSmsAsync(customer, smsMessage, targetPhone);
+                bool smsSuccess = await SendSmsAsync(customer, smsMessage, targetPhone);
+                success = success || smsSuccess;
             }
+            return (success, error);
         }
     }
 
@@ -231,7 +246,7 @@ Contact: 7030993233 / 8806688500";
         return $@"
         <div style=""font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;"">
             <div style=""text-align: center; margin-bottom: 20px;"">
-                <h2 style=""color: #d32f2f; margin: 0;"">Ayansh Enterprises</h2>
+                <h2 style=""color: #d32f2f; margin: 0;"">Ayansh Enterprises - Rental Agreement Services</h2>
                 <hr style=""border: 0; border-top: 1px solid #eee; margin: 20px 0;"" />
             </div>
             <div style=""padding: 10px 0;"">

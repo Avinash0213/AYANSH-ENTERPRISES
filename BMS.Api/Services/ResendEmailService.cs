@@ -20,7 +20,7 @@ public class ResendEmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task<bool> SendEmailAsync(string to, string subject, string body)
+    public async Task<(bool success, string? error)> SendEmailAsync(string to, string subject, string body)
     {
         var apiKey = _config["Resend:ApiKey"];
         var fromEmail = _config["Resend:FromEmail"] ?? "onboarding@resend.dev";
@@ -28,8 +28,9 @@ public class ResendEmailService : IEmailService
 
         if (string.IsNullOrEmpty(apiKey))
         {
-            _logger.LogError("Resend ApiKey is missing in configuration.");
-            return false;
+            var msg = "Resend ApiKey is missing in configuration.";
+            _logger.LogError(msg);
+            return (false, msg);
         }
 
         try
@@ -52,17 +53,17 @@ public class ResendEmailService : IEmailService
             if (response.IsSuccessStatusCode)
             {
                 _logger.LogInformation($"Email sent successfully via Resend to {to}");
-                return true;
+                return (true, null);
             }
 
             var error = await response.Content.ReadAsStringAsync();
             _logger.LogError($"Resend API error sending email to {to}. Status: {response.StatusCode}, Response: {error}");
-            return false;
+            return (false, error);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Exception occurred while sending email to {to} via Resend");
-            return false;
+            return (false, ex.Message);
         }
     }
 }

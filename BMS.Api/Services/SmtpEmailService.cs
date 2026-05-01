@@ -18,7 +18,7 @@ public class SmtpEmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task<bool> SendEmailAsync(string to, string subject, string body)
+    public async Task<(bool success, string? error)> SendEmailAsync(string to, string subject, string body)
     {
         var smtpHost = _config["Email:SmtpHost"] ?? "smtp.gmail.com";
         var smtpPort = int.Parse(_config["Email:SmtpPort"] ?? "587");
@@ -29,8 +29,9 @@ public class SmtpEmailService : IEmailService
 
         if (string.IsNullOrEmpty(smtpUser) || string.IsNullOrEmpty(smtpPass))
         {
-            _logger.LogError("SMTP credentials (SmtpUser/SmtpPass) are missing in configuration.");
-            return false;
+            var msg = "SMTP credentials (SmtpUser/SmtpPass) are missing in configuration.";
+            _logger.LogError(msg);
+            return (false, msg);
         }
 
         try
@@ -42,18 +43,19 @@ public class SmtpEmailService : IEmailService
             email.Body = new TextPart(MimeKit.Text.TextFormat.Html) { Text = body };
 
             using var smtp = new SmtpClient();
+            // Use SecureSocketOptions.Auto to be more robust
             await smtp.ConnectAsync(smtpHost, smtpPort, SecureSocketOptions.StartTls);
             await smtp.AuthenticateAsync(smtpUser, smtpPass);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
 
             _logger.LogInformation($"Email sent successfully via Gmail SMTP to {to}");
-            return true;
+            return (true, null);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Exception occurred while sending email to {to} via SMTP");
-            return false;
+            return (false, ex.Message);
         }
     }
 }
