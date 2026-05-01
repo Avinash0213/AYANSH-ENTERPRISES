@@ -32,7 +32,8 @@ builder.Services.AddResponseCompression(options =>
 
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
+        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure()));
 
 // Services
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();

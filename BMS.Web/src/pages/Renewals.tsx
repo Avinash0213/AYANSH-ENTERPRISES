@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, AlertCircle, Calendar, Mail, MessageCircle, User, Users, CheckCircle2, X, Loader2, RefreshCw } from 'lucide-react';
+import { Clock, AlertCircle, Calendar, Mail, User, Users, CheckCircle2, X, Loader2, RefreshCw } from 'lucide-react';
 import { api } from '../api/axios';
 import { cn, fmtDate } from '../lib/utils';
 import CustomerFormModal from '../components/CustomerFormModal';
@@ -76,24 +76,6 @@ export default function Renewals() {
     }
   };
 
-  const handleSms = async (customerId: number, name: string, targetPhone?: string) => {
-    const key = `sms-${customerId}-${targetPhone}`;
-    if (processing[key]) return;
-    
-    try {
-      setProcessing(p => ({ ...p, [key]: true }));
-      showToast(`Sending renewal SMS to ${name}...`, 'info');
-      await api.post(`/notifications/renewal/${customerId}`, {
-        targetPhone: targetPhone
-      });
-      showToast(`Renewal SMS sent successfully to ${name}`, 'success');
-    } catch (err) {
-      console.error('Error sending SMS', err);
-      showToast(`Failed to send SMS to ${name}`, 'error');
-    } finally {
-      setProcessing(p => ({ ...p, [key]: false }));
-    }
-  };
 
   const handleNotifyAll = async (customerId: number, ownerName: string) => {
     const key = `all-${customerId}`;
@@ -132,7 +114,7 @@ export default function Renewals() {
             role="status"
             aria-live="polite"
           >
-            {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : toast.type === 'error' ? <AlertCircle className="w-5 h-5 shrink-0" /> : <MessageCircle className="w-5 h-5 shrink-0" />}
+            {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
             <div className="flex-1">
               <p className="text-sm font-medium leading-snug">{toast.message}</p>
             </div>
@@ -296,36 +278,22 @@ export default function Renewals() {
                             <User className="w-2.5 h-2.5" />
                             Owner
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            {r.ownerEmail ? (
-                              <button
-                                onClick={() => handleEmail(r.id, r.ownerName, r.ownerEmail)}
-                                disabled={processing[`email-${r.id}-${r.ownerEmail}`]}
-                                aria-label={`Email owner ${r.ownerName}`}
-                                className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 hover:bg-red-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
-                              >
-                                {processing[`email-${r.id}-${r.ownerEmail}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-                              </button>
-                            ) : (
-                              <div className="w-7 h-7 rounded-md bg-muted border border-border flex items-center justify-center text-muted-foreground/40" title="No email">
-                                <Mail className="w-3.5 h-3.5" />
-                              </div>
-                            )}
-                            {r.ownerPhone ? (
-                              <button
-                                onClick={() => handleSms(r.id, r.ownerName, r.ownerPhone)}
-                                disabled={processing[`sms-${r.id}-${r.ownerPhone}`]}
-                                aria-label={`WhatsApp owner ${r.ownerName}`}
-                                className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 hover:bg-red-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
-                              >
-                                {processing[`sms-${r.id}-${r.ownerPhone}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
-                              </button>
-                            ) : (
-                              <div className="w-7 h-7 rounded-md bg-muted border border-border flex items-center justify-center text-muted-foreground/40" title="No phone">
-                                <MessageCircle className="w-3.5 h-3.5" />
-                              </div>
-                            )}
-                          </div>
+                            <div className="flex items-center gap-1.5">
+                              {r.ownerEmail ? (
+                                <button
+                                  onClick={() => handleEmail(r.id, r.ownerName, r.ownerEmail)}
+                                  disabled={processing[`email-${r.id}-${r.ownerEmail}`]}
+                                  aria-label={`Email owner ${r.ownerName}`}
+                                  className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 hover:bg-red-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
+                                >
+                                  {processing[`email-${r.id}-${r.ownerEmail}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                                </button>
+                              ) : (
+                                <div className="w-7 h-7 rounded-md bg-muted border border-border flex items-center justify-center text-muted-foreground/40" title="No email">
+                                  <Mail className="w-3.5 h-3.5" />
+                                </div>
+                              )}
+                            </div>
                         </div>
 
                         {/* Tenant Actions */}
@@ -334,36 +302,22 @@ export default function Renewals() {
                             <Users className="w-2.5 h-2.5" />
                             Tenant
                           </div>
-                          <div className="flex items-center gap-1.5">
-                            {r.tenantEmail ? (
-                              <button
-                                onClick={() => handleEmail(r.id, r.tenantName || 'Tenant', r.tenantEmail)}
-                                disabled={processing[`email-${r.id}-${r.tenantEmail}`]}
-                                aria-label={`Email tenant ${r.tenantName}`}
-                                className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
-                              >
-                                {processing[`email-${r.id}-${r.tenantEmail}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
-                              </button>
-                            ) : (
-                              <div className="w-7 h-7 rounded-md bg-muted border border-border flex items-center justify-center text-muted-foreground/40" title="No email">
-                                <Mail className="w-3.5 h-3.5" />
-                              </div>
-                            )}
-                            {r.tenantPhone ? (
-                              <button
-                                onClick={() => handleSms(r.id, r.tenantName || 'Tenant', r.tenantPhone)}
-                                disabled={processing[`sms-${r.id}-${r.tenantPhone}`]}
-                                aria-label={`WhatsApp tenant ${r.tenantName}`}
-                                className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
-                              >
-                                {processing[`sms-${r.id}-${r.tenantPhone}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
-                              </button>
-                            ) : (
-                              <div className="w-7 h-7 rounded-md bg-muted border border-border flex items-center justify-center text-muted-foreground/40" title="No phone">
-                                <MessageCircle className="w-3.5 h-3.5" />
-                              </div>
-                            )}
-                          </div>
+                            <div className="flex items-center gap-1.5">
+                              {r.tenantEmail ? (
+                                <button
+                                  onClick={() => handleEmail(r.id, r.tenantName || 'Tenant', r.tenantEmail)}
+                                  disabled={processing[`email-${r.id}-${r.tenantEmail}`]}
+                                  aria-label={`Email tenant ${r.tenantName}`}
+                                  className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 hover:bg-emerald-600 hover:text-white transition-colors focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
+                                >
+                                  {processing[`email-${r.id}-${r.tenantEmail}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Mail className="w-3.5 h-3.5" />}
+                                </button>
+                              ) : (
+                                <div className="w-7 h-7 rounded-md bg-muted border border-border flex items-center justify-center text-muted-foreground/40" title="No email">
+                                  <Mail className="w-3.5 h-3.5" />
+                                </div>
+                              )}
+                            </div>
                         </div>
 
                         {/* Notify All */}
@@ -371,7 +325,7 @@ export default function Renewals() {
                           onClick={() => handleNotifyAll(r.id, r.ownerName)}
                           disabled={processing[`all-${r.id}`]}
                           className="flex items-center gap-2 px-3 py-4 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-all disabled:opacity-50 h-full min-h-[60px]"
-                          title="Notify All Parties (Email & SMS)"
+                          title="Notify All Parties (Email)"
                         >
                           {processing[`all-${r.id}`] ? (
                             <Loader2 className="w-4 h-4 animate-spin" />
@@ -482,20 +436,6 @@ export default function Renewals() {
                           <Mail className="w-3.5 h-3.5" />
                         </div>
                       )}
-                      {r.ownerPhone ? (
-                        <button
-                          onClick={() => handleSms(r.id, r.ownerName, r.ownerPhone)}
-                          disabled={processing[`sms-${r.id}-${r.ownerPhone}`]}
-                          aria-label={`WhatsApp owner ${r.ownerName}`}
-                          className="w-7 h-7 rounded-md bg-card border border-red-100 dark:border-red-900/30 flex items-center justify-center text-red-600 focus-visible:ring-2 focus-visible:ring-red-500/20 disabled:opacity-50"
-                        >
-                          {processing[`sms-${r.id}-${r.ownerPhone}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
-                        </button>
-                      ) : (
-                        <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center text-muted-foreground/40">
-                          <MessageCircle className="w-3.5 h-3.5" />
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -518,20 +458,6 @@ export default function Renewals() {
                       ) : (
                         <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center text-muted-foreground/40">
                           <Mail className="w-3.5 h-3.5" />
-                        </div>
-                      )}
-                      {r.tenantPhone ? (
-                        <button
-                          onClick={() => handleSms(r.id, r.tenantName || 'Tenant', r.tenantPhone)}
-                          disabled={processing[`sms-${r.id}-${r.tenantPhone}`]}
-                          aria-label={`WhatsApp tenant ${r.tenantName}`}
-                          className="w-7 h-7 rounded-md bg-card border border-emerald-100 dark:border-emerald-900/30 flex items-center justify-center text-emerald-600 focus-visible:ring-2 focus-visible:ring-emerald-500/20 disabled:opacity-50"
-                        >
-                          {processing[`sms-${r.id}-${r.tenantPhone}`] ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <MessageCircle className="w-3.5 h-3.5" />}
-                        </button>
-                      ) : (
-                        <div className="w-7 h-7 rounded-md bg-muted flex items-center justify-center text-muted-foreground/40">
-                          <MessageCircle className="w-3.5 h-3.5" />
                         </div>
                       )}
                     </div>

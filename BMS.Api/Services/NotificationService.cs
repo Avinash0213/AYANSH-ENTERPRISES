@@ -29,11 +29,13 @@ public class NotificationService
             .OrderByDescending(n => n.SentAt)
             .FirstOrDefault();
             
+        /*
         if (lastSent != null && (DateTime.UtcNow - lastSent.SentAt).TotalHours < 24)
         {
             _logger.LogInformation($"Skipped sending email to {customer.SerialNumber} (Cooldown active)");
-            // return true; // Keeping it commented for now as per user's testing phase, but added target check
+            return (true, null);
         }
+        */
 
         // 2. Send Emails
         bool ownerSent = false;
@@ -102,10 +104,13 @@ public class NotificationService
         if (lastSent != null && (DateTime.UtcNow - lastSent.SentAt).TotalHours < 24)
         {
             _logger.LogInformation($"Skipped sending SMS to {customer.SerialNumber} (Cooldown active)");
-            // return; 
+            return true;
         }
 
-        // 2. Send SMS
+        // SMS is disabled for now as per user request
+        _logger.LogInformation($"SMS service is currently disabled. Skipping SMS for {customer.SerialNumber}");
+        return true; 
+        /*
         bool ownerSent = false;
         bool tenantSent = false;
 
@@ -148,6 +153,7 @@ public class NotificationService
         });
         await _db.SaveChangesAsync();
         return true;
+        */
     }
 
     public async Task SendCompletionNotificationAsync(Customer customer)
@@ -189,7 +195,7 @@ Contact: 7030993233 / 8806688500";
 
 We hope this email finds you well.
 
-This is a friendly reminder that your rental agreement is scheduled for renewal on {endDateStr}. To ensure there is no interruption in your agreement status and to maintain continued service, we kindly request you to initiate the renewal process soon.
+This is a friendly reminder that your rental agreement is scheduled for renewal on <b>{endDateStr}</b>. To ensure there is no interruption in your agreement status and to maintain continued service, we kindly request you to initiate the renewal process soon.
 
 Please get in touch with the Ayansh Enterprises team at your earliest convenience to discuss the next steps and complete the necessary formalities.
 
