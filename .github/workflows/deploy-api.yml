@@ -69,6 +69,7 @@ jobs:
             Resend__ApiKey=${{ secrets.RESEND_API_KEY }}
 
       - name: Cleanup Old Images
+        continue-on-error: true
         run: |
           IMAGE_PATH=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPOSITORY }}/${{ env.SERVICE_NAME }}
           # List all images by update time, skip the 2 most recent, and delete the rest
