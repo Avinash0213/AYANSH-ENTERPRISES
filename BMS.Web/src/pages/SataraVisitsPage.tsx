@@ -17,7 +17,7 @@ import PasswordField from '../components/PasswordField';
 import type { SataraVisit, UpdateSataraVisitRequest, Payment } from '../types';
 
 const emptyForm = {
-  personName: '', phoneNumber: '', address: '',
+  personName: '', phoneNumber: '', agentName: '', agentPhoneNumber: '', address: '',
   scheduledTime: new Date().toISOString(), taskType: '', tokenNumber: '',
   password: '', remarks: '', status: 'Pending' as any,
   receivedAmount: 0, employeeCommission: 0, paymentDate: new Date().toISOString().split('T')[0],
@@ -118,6 +118,8 @@ export default function SataraVisits() {
       const payload: UpdateSataraVisitRequest = {
         personName: form.personName,
         phoneNumber: form.phoneNumber,
+        agentName: form.agentName,
+        agentPhoneNumber: form.agentPhoneNumber,
         address: form.address,
         scheduledTime: form.scheduledTime,
         taskType: form.taskType,
@@ -181,6 +183,8 @@ export default function SataraVisits() {
       ...emptyForm,
       personName: v.personName,
       phoneNumber: v.phoneNumber || '',
+      agentName: v.agentName || '',
+      agentPhoneNumber: v.agentPhoneNumber || '',
       address: v.address || '',
       scheduledTime: v.scheduledTime,
       taskType: v.taskType || '',
@@ -243,6 +247,7 @@ export default function SataraVisits() {
               <tr className="border-b border-border">
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Visit ID</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Client & Contact</th>
+                <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Agent & Contact</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Address</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground">Schedule & Status</th>
                 <th scope="col" className="px-5 py-3 text-xs font-medium text-muted-foreground text-right">Actions</th>
@@ -264,6 +269,12 @@ export default function SataraVisits() {
                       <div className="space-y-1">
                         <p className="text-sm font-medium text-foreground">{v.personName}</p>
                         <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Phone className="w-3 h-3" /> {v.phoneNumber || '—'}</p>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="space-y-1">
+                        <p className="text-sm font-medium text-foreground">{v.agentName || '—'}</p>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1.5"><Phone className="w-3 h-3" /> {v.agentPhoneNumber || '—'}</p>
                       </div>
                     </td>
                     <td className="px-5 py-4">
@@ -327,6 +338,10 @@ export default function SataraVisits() {
                   <p className="text-xs text-foreground leading-relaxed line-clamp-2">{v.address || '—'}</p>
                 </div>
                 <div className="col-span-2">
+                  <p className="text-xs font-medium text-muted-foreground mb-0.5">Agent Details</p>
+                  <p className="text-xs text-foreground leading-relaxed line-clamp-1">{v.agentName || '—'} {v.agentPhoneNumber ? `(${v.agentPhoneNumber})` : ''}</p>
+                </div>
+                <div className="col-span-2">
                   <p className="text-xs font-medium text-muted-foreground mb-0.5">Sch. Date</p>
                   <p className="text-xs text-foreground">{fmtDate(v.scheduledTime)} {new Date(v.scheduledTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
@@ -370,20 +385,33 @@ export default function SataraVisits() {
         )}
       </section>
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? 'Edit Field Record' : 'Schedule Field Operation'}>
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} closeOnOutsideClick={false} title={editingId ? 'Edit Field Record' : 'Schedule Field Operation'}>
         <div className="space-y-6">
           <section className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="md:col-span-2">
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Client / Person Name *</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Customer Name *</label>
                 <input type="text" value={form.personName} onChange={e => updateField('personName', e.target.value)}
                   className="input-field" placeholder="e.g. Rahul Deshmukh" />
               </div>
               <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Contact Number</label>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Customer Phone Number</label>
                 <div className="relative">
                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <input type="text" value={form.phoneNumber} onChange={e => updateField('phoneNumber', e.target.value)}
+                    className="input-field pl-9" placeholder="+91 XXXXX" />
+                </div>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Agent Name</label>
+                <input type="text" value={form.agentName} onChange={e => updateField('agentName', e.target.value)}
+                  className="input-field" placeholder="Agent Name" />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-muted-foreground mb-1">Agent Phone Number</label>
+                <div className="relative">
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <input type="text" value={form.agentPhoneNumber} onChange={e => updateField('agentPhoneNumber', e.target.value)}
                     className="input-field pl-9" placeholder="+91 XXXXX" />
                 </div>
               </div>
@@ -413,7 +441,7 @@ export default function SataraVisits() {
                 <div className="relative">
                   <Hash className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
                   <input type="text" value={form.tokenNumber} onChange={e => updateField('tokenNumber', e.target.value)}
-                    className="input-field pl-9" placeholder="Ref ID" />
+                    className="input-field pl-9" placeholder="Ref ID" autoComplete="off" />
                 </div>
               </div>
               <div>
@@ -423,6 +451,7 @@ export default function SataraVisits() {
                   onChange={e => updateField('password', e.target.value)}
                   placeholder="Security Pass"
                   icon={<Key className="w-3.5 h-3.5" />}
+                  autoComplete="new-password"
                 />
               </div>
               <div>
@@ -553,6 +582,18 @@ export default function SataraVisits() {
                     <p className="text-base font-semibold text-foreground">{viewVisit.personName}</p>
                     <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
                       <Phone className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" /> {viewVisit.phoneNumber || 'Contact Unavailable'}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h3 className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
+                    <User className="w-3 h-3" /> Agent Details
+                  </h3>
+                  <div className="bg-muted/30 p-4 rounded-xl border border-border space-y-2">
+                    <p className="text-base font-semibold text-foreground">{viewVisit.agentName || '—'}</p>
+                    <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
+                      <Phone className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" /> {viewVisit.agentPhoneNumber || 'Contact Unavailable'}
                     </div>
                   </div>
                 </div>

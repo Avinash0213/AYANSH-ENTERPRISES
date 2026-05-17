@@ -24,7 +24,7 @@ public class CustomerService
         
         if (req.Period.HasValue && req.StartDate.HasValue)
         {
-            req.EndDate = req.StartDate.Value.AddMonths(req.Period.Value);
+            req.EndDate = req.StartDate.Value.AddMonths(req.Period.Value).AddDays(-1);
         }
         else
         {

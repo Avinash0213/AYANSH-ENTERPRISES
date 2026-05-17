@@ -40,6 +40,7 @@ public class CustomersController : ControllerBase
         var query = _db.Customers
             .AsNoTracking()
             .Include(c => c.CreatedBy)
+            .Include(c => c.Agent)
             .Where(c => !c.IsDeleted)
             .AsQueryable();
 
@@ -108,6 +109,8 @@ public class CustomersController : ControllerBase
                 TenantEmail = c.TenantEmail,
                 TokenNumber = c.TokenNumber,
                 InquiryFrom = c.InquiryFrom,
+                AgentId = c.AgentId,
+                AgentName = c.Agent != null ? c.Agent.Name : null,
                 Comment = c.Comment,
                 Address = c.Address,
                 Type = (int)c.Type,
@@ -136,6 +139,15 @@ public class CustomersController : ControllerBase
         });
     }
 
+    [HttpGet("stats")]
+    [RequirePermission("CUSTOMER_VIEW")]
+    public async Task<IActionResult> GetStats()
+    {
+        var total = await _db.Customers.CountAsync(c => !c.IsDeleted);
+        var active = await _db.Customers.CountAsync(c => !c.IsDeleted && c.Type != CustomerType.Cancel);
+        return Ok(new { total, active });
+    }
+
     [HttpGet("{id}")]
     [RequirePermission("CUSTOMER_VIEW")]
     public async Task<IActionResult> GetById(int id)
@@ -143,6 +155,7 @@ public class CustomersController : ControllerBase
         var c = await _db.Customers
             .AsNoTracking()
             .Include(c => c.CreatedBy)
+            .Include(c => c.Agent)
             .FirstOrDefaultAsync(c => c.Id == id);
 
         if (c == null) return NotFound();
@@ -159,6 +172,8 @@ public class CustomersController : ControllerBase
             TenantEmail = c.TenantEmail,
             TokenNumber = c.TokenNumber,
             InquiryFrom = c.InquiryFrom,
+            AgentId = c.AgentId,
+            AgentName = c.Agent?.Name,
             Comment = c.Comment,
             Address = c.Address,
             Type = (int)c.Type,
@@ -194,6 +209,7 @@ public class CustomersController : ControllerBase
             TenantEmail = req.TenantEmail,
             TokenNumber = req.TokenNumber,
             InquiryFrom = req.InquiryFrom,
+            AgentId = req.AgentId,
             Comment = req.Comment,
             Address = req.Address,
             Type = req.Type,
@@ -219,6 +235,8 @@ public class CustomersController : ControllerBase
             TenantEmail = created.TenantEmail,
             TokenNumber = created.TokenNumber,
             InquiryFrom = created.InquiryFrom,
+            AgentId = created.AgentId,
+            AgentName = created.Agent?.Name,
             Comment = created.Comment,
             Address = created.Address,
             Type = (int)created.Type,
@@ -252,6 +270,7 @@ public class CustomersController : ControllerBase
         customer.TenantEmail = req.TenantEmail;
         customer.TokenNumber = req.TokenNumber;
         customer.InquiryFrom = req.InquiryFrom;
+        customer.AgentId = req.AgentId;
         customer.Comment = req.Comment;
         customer.Address = req.Address;
         customer.Type = req.Type;
@@ -267,7 +286,7 @@ public class CustomersController : ControllerBase
         
         if (req.Period.HasValue && req.StartDate.HasValue)
         {
-            customer.EndDate = req.StartDate.Value.AddMonths(req.Period.Value);
+            customer.EndDate = req.StartDate.Value.AddMonths(req.Period.Value).AddDays(-1);
         }
         else
         {
@@ -293,6 +312,8 @@ public class CustomersController : ControllerBase
             TenantEmail = customer.TenantEmail,
             TokenNumber = customer.TokenNumber,
             InquiryFrom = customer.InquiryFrom,
+            AgentId = customer.AgentId,
+            AgentName = customer.Agent?.Name,
             Comment = customer.Comment,
             Address = customer.Address,
             Type = (int)customer.Type,

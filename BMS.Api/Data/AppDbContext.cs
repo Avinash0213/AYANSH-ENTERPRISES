@@ -16,6 +16,7 @@ public class AppDbContext : DbContext
     public DbSet<UserPermission> UserPermissions => Set<UserPermission>();
     public DbSet<NotificationLog> NotificationLogs => Set<NotificationLog>();
     public DbSet<SataraVisit> SataraVisits => Set<SataraVisit>();
+    public DbSet<Agent> Agents => Set<Agent>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

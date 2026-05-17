@@ -1,5 +1,5 @@
-import { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { useState, useRef, useEffect, useMemo } from 'react';
+import { ChevronDown, Check, Search, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '../lib/utils';
 
@@ -16,6 +16,7 @@ interface CustomSelectProps {
   className?: string;
   disabled?: boolean;
   id?: string;
+  showSearch?: boolean;
 }
 
 export default function CustomSelect({
@@ -26,11 +27,21 @@ export default function CustomSelect({
   className = '',
   disabled = false,
   id,
+  showSearch = false,
 }: CustomSelectProps) {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   const selected = options.find(o => String(o.value) === String(value));
+
+  const filteredOptions = useMemo(() => {
+    if (!searchTerm) return options;
+    return options.filter(o => 
+      o.label.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [options, searchTerm]);
 
   // Close on outside click
   useEffect(() => {
@@ -43,20 +54,41 @@ export default function CustomSelect({
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
 
+  // Auto-focus search input
+  useEffect(() => {
+    if (open && showSearch) {
+      const timer = setTimeout(() => {
+        searchInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+    if (!open) {
+      setSearchTerm('');
+    }
+  }, [open, showSearch]);
+
   // Keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (disabled) return;
-    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen(o => !o); }
+    if (e.key === 'Enter' || e.key === ' ') { 
+      if (open && showSearch && document.activeElement === searchInputRef.current) return;
+      e.preventDefault(); 
+      setOpen(o => !o); 
+    }
     if (e.key === 'Escape') setOpen(false);
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      const idx = options.findIndex(o => String(o.value) === String(value));
-      if (idx < options.length - 1) onChange(options[idx + 1].value);
+      if (!open) {
+        setOpen(true);
+        return;
+      }
+      const idx = filteredOptions.findIndex(o => String(o.value) === String(value));
+      if (idx < filteredOptions.length - 1) onChange(filteredOptions[idx + 1].value);
     }
     if (e.key === 'ArrowUp') {
       e.preventDefault();
-      const idx = options.findIndex(o => String(o.value) === String(value));
-      if (idx > 0) onChange(options[idx - 1].value);
+      const idx = filteredOptions.findIndex(o => String(o.value) === String(value));
+      if (idx > 0) onChange(filteredOptions[idx - 1].value);
     }
   };
 
@@ -81,7 +113,7 @@ export default function CustomSelect({
         )}
         style={{ color: 'var(--foreground)' }}
       >
-        <span className={cn('truncate', !selected && 'text-muted-foreground')}>
+        <span className={cn('whitespace-normal break-all text-left', !selected && 'text-muted-foreground')}>
           {selected ? selected.label : placeholder}
         </span>
         <ChevronDown
@@ -107,29 +139,63 @@ export default function CustomSelect({
             )}
             role="listbox"
           >
-            <div className="max-h-56 overflow-y-auto py-1.5 divide-y divide-border/50">
-              {options.map(option => {
-                const isSelected = String(option.value) === String(value);
-                return (
-                  <button
-                    key={option.value}
-                    type="button"
-                    role="option"
-                    aria-selected={isSelected}
-                    onClick={() => { onChange(option.value); setOpen(false); }}
+            {showSearch && (
+              <div className="p-2 border-b border-border/50 sticky top-0 bg-card z-10">
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+                  <input
+                    ref={searchInputRef}
+                    type="text"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search..."
                     className={cn(
-                      'w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-left',
-                      'transition-colors duration-100 cursor-pointer',
-                      isSelected
-                        ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold'
-                        : 'text-foreground hover:bg-background/80 font-medium'
+                      "w-full pl-8 pr-8 py-1.5 text-xs bg-muted/50 border border-border rounded-lg",
+                      "focus:outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500/50",
+                      "placeholder:text-muted-foreground"
                     )}
-                  >
-                    <span className="truncate">{option.label}</span>
-                    {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
-                  </button>
-                );
-              })}
+                  />
+                  {searchTerm && (
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="absolute right-2 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded-md transition-colors"
+                    >
+                      <X className="w-3 h-3 text-muted-foreground" />
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div className="max-h-56 overflow-y-auto py-1.5 divide-y divide-border/50">
+              {filteredOptions.length > 0 ? (
+                filteredOptions.map(option => {
+                  const isSelected = String(option.value) === String(value);
+                  return (
+                    <button
+                      key={option.value}
+                      type="button"
+                      role="option"
+                      aria-selected={isSelected}
+                      onClick={() => { onChange(option.value); setOpen(false); }}
+                      className={cn(
+                        'w-full flex items-center justify-between gap-2 px-4 py-2.5 text-sm text-left',
+                        'transition-colors duration-100 cursor-pointer',
+                        isSelected
+                          ? 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 font-bold'
+                          : 'text-foreground hover:bg-background/80 font-medium'
+                      )}
+                    >
+                      <span className="whitespace-normal break-all">{option.label}</span>
+                      {isSelected && <Check className="w-3.5 h-3.5 shrink-0" />}
+                    </button>
+                  );
+                })
+              ) : (
+                <div className="px-4 py-8 text-center">
+                  <p className="text-xs text-muted-foreground">No results found for "{searchTerm}"</p>
+                </div>
+              )}
             </div>
           </motion.div>
         )}

@@ -13,6 +13,8 @@ public class Customer
     public string? TenantEmail { get; set; }
     public string? TokenNumber { get; set; }
     public string? InquiryFrom { get; set; } // "Self" or "Agent"
+    public int? AgentId { get; set; }
+    public Agent? Agent { get; set; }
     public string? Comment { get; set; }
     public string? Address { get; set; }
     public CustomerType Type { get; set; }

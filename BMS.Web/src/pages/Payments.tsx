@@ -364,7 +364,7 @@ export default function Payments() {
       </section>
 
       {/* Add Payment Modal */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Record Payment">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} closeOnOutsideClick={false} title="Record Payment">
         <div className="space-y-4">
           <div>
             <label className="block text-xs font-medium text-muted-foreground mb-1">Customer *</label>

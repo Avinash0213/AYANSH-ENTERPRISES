@@ -12,6 +12,7 @@ public class CreateCustomerRequest
     public string? TenantEmail { get; set; }
     public string? TokenNumber { get; set; }
     public string? InquiryFrom { get; set; }
+    public int? AgentId { get; set; }
     public string? Comment { get; set; }
     public string? Address { get; set; }
     public CustomerType Type { get; set; }
@@ -35,6 +36,7 @@ public class UpdateCustomerRequest
     public string? TenantEmail { get; set; }
     public string? TokenNumber { get; set; }
     public string? InquiryFrom { get; set; }
+    public int? AgentId { get; set; }
     public string? Comment { get; set; }
     public string? Address { get; set; }
     public CustomerType Type { get; set; }
@@ -60,6 +62,8 @@ public class CustomerResponse
     public string? TenantEmail { get; set; }
     public string? TokenNumber { get; set; }
     public string? InquiryFrom { get; set; }
+    public int? AgentId { get; set; }
+    public string? AgentName { get; set; }
     public string? Comment { get; set; }
     public string? Address { get; set; }
     public int Type { get; set; }

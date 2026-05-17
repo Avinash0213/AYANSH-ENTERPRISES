@@ -6,6 +6,8 @@ public class SataraVisit
     public string VisitCode { get; set; } = null!; // e.g. SAT00001
     public string PersonName { get; set; } = null!;
     public string? PhoneNumber { get; set; }
+    public string? AgentName { get; set; }
+    public string? AgentPhoneNumber { get; set; }
     public string? Address { get; set; }
     public DateTime ScheduledTime { get; set; }
     public string? TaskType { get; set; }

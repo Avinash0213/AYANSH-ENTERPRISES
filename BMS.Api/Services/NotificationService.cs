@@ -159,6 +159,7 @@ public class NotificationService
     public async Task SendCompletionNotificationAsync(Customer customer)
     {
         string subject = "Your Property Agreement is Now Complete";
+        
         string emailBody = @"Dear {{Name}},
 
 We are pleased to inform you that your property agreement process has been successfully completed. 
@@ -189,21 +190,20 @@ Contact: 7030993233 / 8806688500";
     public async Task<(bool success, string? error)> SendRenewalNotificationAsync(Customer customer, string? targetEmail = null, string? targetPhone = null)
     {
         string subject = "Upcoming Renewal of Your Rental Agreement";
-        string endDateStr = customer.EndDate?.ToString("dd/MM/yyyy") ?? "[Date]";
+        string endDateStr = customer.EndDate?.ToString("dd/MM/yyyy") ?? "N/A";
         
         string emailBody = $@"Dear {{{{Name}}}},
+Your rent Agreement for the following property is about to expire -
+Request No : {customer.SerialNumber}
+Owner : {customer.OwnerName ?? "N/A"}
+Tenant : {customer.TenantName ?? "N/A"}
+Property address:{customer.Address ?? "N/A"}
+Agreement End Date : {endDateStr}
 
-We hope this email finds you well.
+Please note as a part of eRegistration process it is essential to do fresh biometric verification for renewal of agreement. If you have any doubts please call our customer support team for clarification.
 
-This is a friendly reminder that your rental agreement is scheduled for renewal on <b>{endDateStr}</b>. To ensure there is no interruption in your agreement status and to maintain continued service, we kindly request you to initiate the renewal process soon.
-
-Please get in touch with the Ayansh Enterprises team at your earliest convenience to discuss the next steps and complete the necessary formalities.
-
-Thank you for your cooperation and your continued trust in us.
-
-Warm regards,
-
-The Ayansh Enterprises Team
+Regards,
+Team Ayansh Enterprises
 
 ---
 Office Address:

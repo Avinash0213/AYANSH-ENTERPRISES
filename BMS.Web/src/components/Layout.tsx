@@ -15,7 +15,8 @@ import {
   ChevronRight,
   Sun,
   Moon,
-  MapPin
+  MapPin,
+  Contact
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
@@ -31,29 +32,42 @@ interface NavItemProps {
   onClick?: () => void;
 }
 
-const NavItem = ({ to, icon: Icon, label, active, badge, onClick }: NavItemProps) => (
-  <Link
-    to={to}
-    onClick={onClick}
-    className={cn(
-      "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors duration-200 group relative focus-visible:ring-2 focus-visible:ring-red-500/30 outline-none",
-      active
-        ? "bg-gradient-to-r from-red-600 to-red-500 text-white shadow-sm shadow-red-200/50 dark:shadow-red-900/20"
-        : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
-    )}
-  >
-    <Icon className={cn("w-5 h-5 shrink-0", active ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
-    <span className="font-medium text-sm">{label}</span>
-    {badge && (
-      <span className={cn(
-        "badge ml-auto",
-        active ? "bg-white/20 text-white" : "badge-new"
-      )}>
-        {badge}
-      </span>
-    )}
-  </Link>
-);
+const NavItem = ({ to, icon: Icon, label, active, badge, onClick }: NavItemProps) => {
+  const navigate = useNavigate();
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (active) {
+      e.preventDefault();
+      if (onClick) onClick();
+      navigate(to, { replace: true, state: { refresh: Date.now() } });
+    } else if (onClick) {
+      onClick();
+    }
+  };
+
+  return (
+    <Link
+      to={to}
+      onClick={handleClick}
+      className={cn(
+        "flex items-center gap-3 px-4 py-2.5 rounded-xl transition-colors duration-200 group relative focus-visible:ring-2 focus-visible:ring-red-500/30 outline-none",
+        active
+          ? "bg-gradient-to-r from-red-600 to-red-500 text-white shadow-sm shadow-red-200/50 dark:shadow-red-900/20"
+          : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+      )}
+    >
+      <Icon className={cn("w-5 h-5 shrink-0", active ? "text-white" : "text-muted-foreground group-hover:text-foreground")} />
+      <span className="font-medium text-sm">{label}</span>
+      {badge && (
+        <span className={cn(
+          "badge ml-auto",
+          active ? "bg-white/20 text-white" : "badge-new"
+        )}>
+          {badge}
+        </span>
+      )}
+    </Link>
+  );
+};
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const location = useLocation();
@@ -89,6 +103,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     { to: '/payments', icon: CreditCard, label: 'Payments', show: can('PAYMENT_VIEW') },
     { to: '/reports', icon: FileBarChart, label: 'Reports', show: can('REPORT_VIEW') },
     { to: '/satara-visits', icon: MapPin, label: 'Satara Visits', show: can('SATARA_VIEW') },
+    { to: '/agents', icon: Contact, label: 'Agents', show: can('CUSTOMER_VIEW') },
     { to: '/users', icon: Shield, label: 'Users', show: can('USER_VIEW') },
   ];
 
@@ -234,7 +249,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </header>
 
-        <div className="p-4 lg:p-6">
+        <div className="p-4 lg:p-6" key={(location.state as any)?.refresh || 'default'}>
           {children}
         </div>
       </main>

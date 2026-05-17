@@ -192,7 +192,7 @@ export default function UsersPage() {
       </div>
 
       {/* Create/Edit Modal */}
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)}
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} closeOnOutsideClick={false}
         title={editingId ? 'Edit User' : 'Create User'} maxWidth="max-w-lg">
         <div className="space-y-4">
           <div>

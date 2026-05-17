@@ -32,14 +32,19 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [{ data: customers }, { data: renewals }] = await Promise.all([
+        const [
+          { data: customers },
+          { data: renewals },
+          { data: statsData }
+        ] = await Promise.all([
           api.get('/customers?pageSize=5'),
-          api.get('/renewals')
+          api.get('/renewals'),
+          api.get('/customers/stats')
         ]);
         
         setStats({
-          total: customers.totalCount,
-          active: customers.items.filter((c: Customer) => c.type !== 2).length,
+          total: statsData.total,
+          active: statsData.active,
           renewals: renewals.length
         });
         setRecentCustomers(customers.items);

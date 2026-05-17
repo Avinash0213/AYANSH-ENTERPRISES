@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { 
   Users, FileText, DollarSign, History, 
-  CheckCircle2, Loader2, Pencil 
+  CheckCircle2, Loader2, Pencil, UserPlus, Phone, Mail, Plus
 } from 'lucide-react';
+import { agentService } from '../api/agentService';
+import type { Agent } from '../types';
 import { api } from '../api/axios';
 import { fmtDate } from '../lib/utils';
 import Modal from './Modal';
@@ -20,10 +22,10 @@ interface CustomerFormModalProps {
 const emptyForm = {
   ownerName: '', ownerPhone: '', ownerEmail: '',
   tenantName: '', tenantPhone: '', tenantEmail: '',
-  tokenNumber: '', inquiryFrom: '', comment: '', type: 0, status: 0,
+  tokenNumber: '', inquiryFrom: '', agentId: undefined as number | undefined, comment: '', type: 0, status: 0,
   startDate: new Date().toISOString().split('T')[0],
   initiatedDate: '',
-  period: 12,
+  period: 11,
   receivedAmount: 0,
   governmentCharges: 0,
   employeeCommission: 0,
@@ -43,6 +45,16 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
   const [saving, setSaving] = useState(false);
   const [customerPayments, setCustomerPayments] = useState<any[]>([]);
   const [editPayment, setEditPayment] = useState<any>(null);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [agentModalOpen, setAgentModalOpen] = useState(false);
+  const [newAgent, setNewAgent] = useState({ name: '', phone: '', email: '' });
+  const [creatingAgent, setCreatingAgent] = useState(false);
+  const fetchAgents = async () => {
+    try {
+      const data = await agentService.getAll();
+      setAgents(data);
+    } catch (err) { console.error('Error fetching agents', err); }
+  };
 
   useEffect(() => {
     if (open) {
@@ -56,6 +68,10 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
     }
   }, [open, customerId, initialType]);
 
+  useEffect(() => {
+    fetchAgents();
+  }, []);
+
   const fetchCustomer = async (id: number) => {
     setLoading(true);
     try {
@@ -64,7 +80,7 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
         ...emptyForm,
         ownerName: data.ownerName, ownerPhone: data.ownerPhone || '', ownerEmail: data.ownerEmail || '',
         tenantName: data.tenantName, tenantPhone: data.tenantPhone || '', tenantEmail: data.tenantEmail || '',
-        tokenNumber: data.tokenNumber || '', inquiryFrom: data.inquiryFrom || '', comment: data.comment || '',
+        tokenNumber: data.tokenNumber || '', inquiryFrom: data.inquiryFrom || '', agentId: data.agentId, comment: data.comment || '',
         address: data.address || '',
         type: initialType ?? data.type,
         status: data.status,
@@ -102,6 +118,7 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
     try {
       const d = new Date(form.startDate);
       d.setMonth(d.getMonth() + form.period);
+      d.setDate(d.getDate() - 1);
       return fmtDate(d);
     } catch { return '—'; }
   };
@@ -120,7 +137,7 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
         tokenNumber: form.tokenNumber || null,
         inquiryFrom: form.inquiryFrom || null,
         comment: form.comment || null,
-        address: form.address || null,
+        address: form.address ? form.address.replace(/\r?\n/g, ' ').replace(/\s{2,}/g, ' ').trim() : null,
         initiatedDate: form.initiatedDate || null,
         rent: form.rent,
         deposit: form.deposit,
@@ -165,7 +182,7 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
   };
 
   return (
-    <Modal open={open} onClose={onClose} 
+    <Modal open={open} onClose={onClose} closeOnOutsideClick={false}
       title={customerId ? 'Edit Customer Agreement' : 'Initialize New Agreement'}>
       {loading ? (
         <div className="p-20 flex flex-col items-center justify-center gap-4">
@@ -211,7 +228,18 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="md:col-span-3">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Address</label>
-                <textarea value={form.address} onChange={e => updateField('address', e.target.value)} className="input-field resize-none" rows={2} />
+                <textarea 
+                  value={form.address} 
+                  onChange={e => {
+                    let val = e.target.value;
+                    if (val.includes('\n') || val.includes('\r')) {
+                      val = val.replace(/\r?\n/g, ' ').replace(/\s{2,}/g, ' ');
+                    }
+                    updateField('address', val);
+                  }} 
+                  className="input-field resize-none" 
+                  rows={2} 
+                />
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Type *</label>
@@ -250,9 +278,38 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
               </div>
               <div>
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Inquiry From</label>
-                <CustomSelect value={form.inquiryFrom} onChange={v => updateField('inquiryFrom', String(v))} 
+                <CustomSelect value={form.inquiryFrom} onChange={v => {
+                  updateField('inquiryFrom', String(v));
+                  if (v !== 'Agent') updateField('agentId', undefined);
+                }} 
                   options={[{value: '', label: 'Select Source'}, {value: 'Self', label: 'Self'}, {value: 'Agent', label: 'Agent'}]} />
               </div>
+              {form.inquiryFrom === 'Agent' && (
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-medium text-muted-foreground mb-1">Select Agent</label>
+                  <div className="flex gap-2">
+                    <div className="flex-1">
+                      <CustomSelect 
+                        value={form.agentId || ''} 
+                        onChange={v => updateField('agentId', v ? parseInt(String(v)) : undefined)} 
+                        options={[
+                          { value: '', label: 'Select Existing Agent' },
+                          ...agents.filter(a => a.isActive || a.id === form.agentId).map(a => ({ value: a.id, label: a.name }))
+                        ]} 
+                        showSearch={true}
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setAgentModalOpen(true)}
+                      className="p-2 bg-red-50 text-red-600 rounded-lg border border-red-100 hover:bg-red-100 transition-colors"
+                      title="Add New Agent"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              )}
               <div className="md:col-span-3">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Administrative Notes / Comments</label>
                 <textarea value={form.comment} onChange={e => updateField('comment', e.target.value)} className="input-field resize-none" rows={2} placeholder="Add any specific notes about this customer..." />
@@ -431,6 +488,93 @@ export default function CustomerFormModal({ open, onClose, customerId, onSuccess
           </div>
         )}
       </Modal>
-    </Modal>
+
+      {/* Add Agent Modal */}
+      <Modal open={agentModalOpen} onClose={() => setAgentModalOpen(false)} title="Register New Agent">
+        <div className="space-y-4">
+          <div className="bg-red-50/50 p-4 rounded-xl border border-red-100 mb-2">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                <UserPlus className="w-5 h-5 text-red-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Agent Profile</p>
+                <p className="text-xs text-muted-foreground">Add a new agent to your network</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Agent Name *</label>
+              <div className="relative">
+                <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input 
+                  value={newAgent.name} 
+                  onChange={e => setNewAgent(a => ({ ...a, name: e.target.value }))}
+                  className="input-field pl-10" 
+                  placeholder="Enter full name" 
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Phone Number</label>
+              <div className="relative">
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input 
+                  value={newAgent.phone} 
+                  onChange={e => setNewAgent(a => ({ ...a, phone: e.target.value }))}
+                  className="input-field pl-10" 
+                  placeholder="e.g. +91 98765 43210" 
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <input 
+                  value={newAgent.email} 
+                  onChange={e => setNewAgent(a => ({ ...a, email: e.target.value }))}
+                  className="input-field pl-10" 
+                  placeholder="agent@example.com" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-border">
+            <button 
+              onClick={() => { setAgentModalOpen(false); setNewAgent({ name: '', phone: '', email: '' }); }} 
+              className="px-4 py-2 text-sm font-medium text-muted-foreground hover:bg-muted rounded-lg transition-colors"
+            >
+              Discard
+            </button>
+            <button 
+              disabled={!newAgent.name || creatingAgent}
+              onClick={async () => {
+                setCreatingAgent(true);
+                try {
+                  const agent = await agentService.create(newAgent);
+                  setAgents(prev => [...prev, agent]);
+                  updateField('agentId', agent.id);
+                  setAgentModalOpen(false);
+                  setNewAgent({ name: '', phone: '', email: '' });
+                } catch (err) {
+                  console.error('Error creating agent', err);
+                  alert('Failed to create agent. Please try again.');
+                } finally {
+                  setCreatingAgent(false);
+                }
+              }}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg font-bold text-sm hover:bg-red-700 shadow-lg shadow-red-500/20 active:scale-95 transition-all flex items-center gap-2"
+            >
+              {creatingAgent ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+              Save Agent
+            </button>
+          </div>
+        </div>
+      </Modal>
+      </Modal>
   );
 }

@@ -166,7 +166,7 @@ export default function Customers() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold text-foreground tracking-tight leading-snug">One Platform</h1>
-          <p className="text-sm text-muted-foreground mt-1">Manage customer and tenant records</p>
+          <p className="text-sm text-muted-foreground mt-1">Manage owner and tenant records</p>
         </div>
         {can('USER_CREATE') && (
           <button
@@ -333,10 +333,15 @@ export default function Customers() {
                     <td className="px-5 py-4">
                       <div className="flex flex-col gap-1.5">
                         {c.inquiryFrom && (
-                          <span className={cn("badge w-fit",
-                            c.inquiryFrom === 'Agent' ? "badge-agent" : "badge-self"
+                          <span className={cn("badge w-fit max-w-[140px]",
+                            c.inquiryFrom === 'Agent' ? "badge-agent flex flex-col items-start gap-1 py-1.5" : "badge-self"
                           )}>
-                            {c.inquiryFrom}
+                            {c.inquiryFrom === 'Agent' && c.agentName ? (
+                              <>
+                                <span className="text-[9px] tracking-wider opacity-70 leading-none shrink-0">Agent</span>
+                                <span className="font-bold leading-none truncate w-full" title={c.agentName}>{c.agentName}</span>
+                              </>
+                            ) : c.inquiryFrom}
                           </span>
                         )}
                         {c.comment && (
@@ -449,9 +454,16 @@ export default function Customers() {
                   {c.inquiryFrom && (
                     <div>
                       <p className="text-xs font-medium text-muted-foreground mb-0.5">Inquiry From</p>
-                      <span className={cn("badge",
-                        c.inquiryFrom === 'Agent' ? "badge-agent" : "badge-self"
-                      )}>{c.inquiryFrom}</span>
+                      <span className={cn("badge max-w-[140px]",
+                        c.inquiryFrom === 'Agent' ? "badge-agent flex flex-col items-start gap-1 py-1.5" : "badge-self"
+                      )}>
+                        {c.inquiryFrom === 'Agent' && c.agentName ? (
+                          <>
+                            <span className="text-[9px] tracking-wider opacity-70 leading-none shrink-0">Agent</span>
+                            <span className="font-bold leading-none truncate w-full" title={c.agentName}>{c.agentName}</span>
+                          </>
+                        ) : c.inquiryFrom}
+                      </span>
                     </div>
                   )}
                   {c.comment && (
@@ -630,6 +642,12 @@ export default function Customers() {
                     <p className="text-xs font-medium text-muted-foreground mb-1">Token #</p>
                     <p className="text-sm font-semibold text-foreground font-mono">{viewCustomer.tokenNumber || '—'}</p>
                   </div>
+                  {viewCustomer.inquiryFrom === 'Agent' && (
+                    <div className="bg-card p-4 rounded-xl border border-border text-center col-span-2">
+                      <p className="text-xs font-medium text-muted-foreground mb-1">Referrer (Agent)</p>
+                      <p className="text-sm font-semibold text-red-600">{viewCustomer.agentName ? viewCustomer.agentName : 'Unknown Agent'}</p>
+                    </div>
+                  )}
                 </div>
 
                 <div className="bg-emerald-50 dark:bg-emerald-900/10 p-5 rounded-xl border border-emerald-100 dark:border-emerald-900/20 space-y-4">
@@ -796,7 +814,7 @@ export default function Customers() {
       </Modal>
 
       {/* Edit Payment Sub-Modal */}
-      <Modal open={!!editPayment} onClose={() => setEditPayment(null)} title="Modify Ledger Entry">
+      <Modal open={!!editPayment} onClose={() => setEditPayment(null)} closeOnOutsideClick={false} title="Modify Ledger Entry">
         {editPayment && (
           <div className="space-y-5">
             <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-900/20 p-4 rounded-xl flex items-start gap-3">

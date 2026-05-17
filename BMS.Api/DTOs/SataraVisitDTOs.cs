@@ -4,18 +4,23 @@ public class CreateSataraVisitRequest
 {
     public string PersonName { get; set; } = null!;
     public string? PhoneNumber { get; set; }
+    public string? AgentName { get; set; }
+    public string? AgentPhoneNumber { get; set; }
     public string? Address { get; set; }
     public DateTime ScheduledTime { get; set; }
     public string? TaskType { get; set; }
     public string? TokenNumber { get; set; }
     public string? Password { get; set; }
     public string? Remarks { get; set; }
+    public string Status { get; set; } = "Pending";
 }
 
 public class UpdateSataraVisitRequest
 {
     public string PersonName { get; set; } = null!;
     public string? PhoneNumber { get; set; }
+    public string? AgentName { get; set; }
+    public string? AgentPhoneNumber { get; set; }
     public string? Address { get; set; }
     public DateTime ScheduledTime { get; set; }
     public string? TaskType { get; set; }
@@ -31,6 +36,8 @@ public class SataraVisitResponse
     public string VisitCode { get; set; } = null!;
     public string PersonName { get; set; } = null!;
     public string? PhoneNumber { get; set; }
+    public string? AgentName { get; set; }
+    public string? AgentPhoneNumber { get; set; }
     public string? Address { get; set; }
     public DateTime ScheduledTime { get; set; }
     public string? TaskType { get; set; }

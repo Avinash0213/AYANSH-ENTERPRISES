@@ -49,6 +49,7 @@ builder.Services.AddScoped<PaymentService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<SataraVisitService>();
+builder.Services.AddScoped<IAgentService, AgentService>();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -83,6 +84,33 @@ using (var scope = app.Services.CreateScope())
     {
         var db = services.GetRequiredService<AppDbContext>();
         await db.Database.MigrateAsync();
+        
+        // One-time data correction for EndDate calculations: StartDate + Period - 1 Day
+        var customersToFix = await db.Customers
+            .Where(c => !c.IsDeleted && c.StartDate != null && c.Period != null)
+            .ToListAsync();
+            
+        bool hasFixedAny = false;
+        foreach (var customer in customersToFix)
+        {
+            if (customer.StartDate.HasValue && customer.Period.HasValue)
+            {
+                var correctEndDate = customer.StartDate.Value.AddMonths(customer.Period.Value).AddDays(-1);
+                if (customer.EndDate != correctEndDate)
+                {
+                    customer.EndDate = correctEndDate;
+                    hasFixedAny = true;
+                }
+            }
+        }
+        
+        if (hasFixedAny)
+        {
+            await db.SaveChangesAsync();
+            var logger = services.GetRequiredService<ILogger<Program>>();
+            logger.LogInformation("Successfully corrected the agreement end dates for existing customer records.");
+        }
+
         // await DbSeeder.SeedAsync(db); // Uncomment to seed required data once
     }
     catch (Exception ex)

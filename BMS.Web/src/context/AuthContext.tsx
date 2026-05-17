@@ -45,13 +45,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Restore session on mount
   useEffect(() => {
     const init = async () => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        const permissions = await fetchPermissions(token);
-        const decoded = parseJwt(token);
-        // http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress is standard ASP.NET claim for Email
-        const userEmail = decoded?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || decoded?.email;
-        setUser({ token, permissions, roleId: decoded?.roleId ? parseInt(decoded.roleId) : undefined, email: userEmail });
+      const initialToken = localStorage.getItem('token');
+      if (initialToken) {
+        const permissions = await fetchPermissions(initialToken);
+        const finalToken = localStorage.getItem('token');
+        if (finalToken) {
+          const decoded = parseJwt(finalToken);
+          // http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress is standard ASP.NET claim for Email
+          const userEmail = decoded?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || decoded?.email;
+          setUser({ token: finalToken, permissions, roleId: decoded?.roleId ? parseInt(decoded.roleId) : undefined, email: userEmail });
+        } else {
+          setUser(null);
+        }
       }
       setLoading(false);
     };
@@ -62,6 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const { data } = await api.post('/auth/login', { email, password });
     const token = data.accessToken;
     localStorage.setItem('token', token);
+    if (data.refreshToken) {
+      localStorage.setItem('refreshToken', data.refreshToken);
+    }
     const permissions = await fetchPermissions(token);
     const decoded = parseJwt(token);
     const userEmail = decoded?.['http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress'] || decoded?.email;
@@ -70,6 +78,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     setUser(null);
   }, []);
 

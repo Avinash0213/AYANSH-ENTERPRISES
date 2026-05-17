@@ -9,6 +9,8 @@ export interface Customer {
   tenantEmail?: string;
   tokenNumber?: string;
   inquiryFrom?: string;
+  agentId?: number;
+  agentName?: string;
   comment?: string;
   address?: string;
   type: number;
@@ -37,6 +39,7 @@ export interface CreateCustomerRequest {
   tenantEmail?: string;
   tokenNumber?: string;
   inquiryFrom?: string;
+  agentId?: number;
   comment?: string;
   address?: string;
   type: number;
@@ -131,6 +134,8 @@ export interface SataraVisit {
   visitCode: string;
   personName: string;
   phoneNumber?: string;
+  agentName?: string;
+  agentPhoneNumber?: string;
   address?: string;
   scheduledTime: string;
   taskType?: string;
@@ -146,14 +151,31 @@ export interface SataraVisit {
 export interface CreateSataraVisitRequest {
   personName: string;
   phoneNumber?: string;
+  agentName?: string;
+  agentPhoneNumber?: string;
   address?: string;
   scheduledTime: string;
   taskType?: string;
   tokenNumber?: string;
   password?: string;
   remarks?: string;
-}
-
-export interface UpdateSataraVisitRequest extends CreateSataraVisitRequest {
   status: string;
 }
+
+export interface UpdateSataraVisitRequest extends CreateSataraVisitRequest {}
+
+
+export interface Agent {
+  id: number;
+  name: string;
+  phone?: string;
+  email?: string;
+  isActive: boolean;
+}
+
+export interface CreateAgentRequest {
+  name: string;
+  phone?: string;
+  email?: string;
+}
+

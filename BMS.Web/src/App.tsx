@@ -10,6 +10,7 @@ import Payments from './pages/Payments';
 import Reports from './pages/Reports';
 import UsersPage from './pages/Users';
 import SataraVisits from './pages/SataraVisitsPage';
+import Agents from './pages/Agents';
 import Layout from './components/Layout';
 
 function ProtectedRoute({ children, permission }: { children: React.ReactNode; permission?: string }) {
@@ -62,6 +63,7 @@ function AppRoutes() {
       <Route path="/payments" element={<ProtectedRoute permission="PAYMENT_VIEW"><Payments /></ProtectedRoute>} />
       <Route path="/reports" element={<ProtectedRoute permission="REPORT_VIEW"><Reports /></ProtectedRoute>} />
       <Route path="/satara-visits" element={<ProtectedRoute permission="SATARA_VIEW"><SataraVisits /></ProtectedRoute>} />
+      <Route path="/agents" element={<ProtectedRoute permission="CUSTOMER_VIEW"><Agents /></ProtectedRoute>} />
       <Route path="/users" element={<ProtectedRoute permission="USER_VIEW"><UsersPage /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/customers" replace />} />

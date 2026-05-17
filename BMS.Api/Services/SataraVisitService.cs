@@ -29,13 +29,15 @@ public class SataraVisitService
             VisitCode = visitCode,
             PersonName = req.PersonName,
             PhoneNumber = req.PhoneNumber,
+            AgentName = req.AgentName,
+            AgentPhoneNumber = req.AgentPhoneNumber,
             Address = req.Address,
             ScheduledTime = req.ScheduledTime,
             TaskType = req.TaskType,
             TokenNumber = req.TokenNumber,
             Password = req.Password,
             Remarks = req.Remarks,
-            Status = "Pending",
+            Status = req.Status ?? "Pending",
             CreatedAt = DateTime.UtcNow,
             CreatedById = userId
         };
@@ -76,6 +78,8 @@ public class SataraVisitService
 
         visit.PersonName = req.PersonName;
         visit.PhoneNumber = req.PhoneNumber;
+        visit.AgentName = req.AgentName;
+        visit.AgentPhoneNumber = req.AgentPhoneNumber;
         visit.Address = req.Address;
         visit.ScheduledTime = req.ScheduledTime;
         visit.TaskType = req.TaskType;
@@ -104,6 +108,8 @@ public class SataraVisitService
         VisitCode = v.VisitCode,
         PersonName = v.PersonName,
         PhoneNumber = v.PhoneNumber,
+        AgentName = v.AgentName,
+        AgentPhoneNumber = v.AgentPhoneNumber,
         Address = v.Address,
         ScheduledTime = v.ScheduledTime,
         TaskType = v.TaskType,
