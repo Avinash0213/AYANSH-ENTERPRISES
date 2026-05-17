@@ -13,6 +13,7 @@ import { cn, fmtDate } from '../lib/utils';
 import Modal from '../components/Modal';
 import CustomSelect from '../components/CustomSelect';
 import DateInput from '../components/DateInput';
+import DateTimeInput from '../components/DateTimeInput';
 import PasswordField from '../components/PasswordField';
 import type { SataraVisit, UpdateSataraVisitRequest, Payment } from '../types';
 
@@ -423,8 +424,10 @@ export default function SataraVisits() {
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Scheduled Date & Time *</label>
-                <input type="datetime-local" value={form.scheduledTime.substring(0, 16)} onChange={e => updateField('scheduledTime', new Date(e.target.value).toISOString())}
-                  className="input-field" />
+                <DateTimeInput 
+                  value={form.scheduledTime} 
+                  onChange={v => updateField('scheduledTime', v)} 
+                />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-xs font-medium text-muted-foreground mb-1">Full Visit Address</label>
